@@ -1,0 +1,13 @@
+package noorbookstore;
+
+/**
+ * Custom Exception for handling out-of-stock books
+ * Used in the Customer Storefront UI during cart operations.
+ */
+public class BookOutOfStockException extends Exception {
+
+    // Constructor
+    public BookOutOfStockException(String message) {
+        super(message);
+    }
+}
