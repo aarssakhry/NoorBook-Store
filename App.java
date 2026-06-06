@@ -282,4 +282,128 @@ public class App extends Application {
     }
 }
 
+// =========================================================================
+    // AUTHOR: SYAHIRAH  (MEMBER 3 - CUSTOMER STOREFRONT UI)
+    // =========================================================================
+    private void showCustomerDashboard(Stage stage, VBox rootContainer) {
+        VBox customerBox = new VBox(15);
+        customerBox.setPadding(new Insets(25));
+        customerBox.setStyle("-fx-background-color: #ffffff;");
 
+        // Matches Amirah's loggedInCustomer variable
+        Label welcomeLabel = new Label("Welcome to Noor Book Store, " + loggedInCustomer.getName() + "! Assalamu Alaikum.");
+        welcomeLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e5e43;");
+
+        HBox searchPanel = new HBox(10);
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search literature titles...");
+        searchField.setPrefWidth(220);
+        
+        ComboBox<String> filterBox = new ComboBox<>(FXCollections.observableArrayList("All Categories", "Quran", "Hadith", "Tafsir"));
+        filterBox.setValue("All Categories");
+        searchPanel.getChildren().addAll(searchField, filterBox);
+
+        ListView<Product> catalogDisplay = new ListView<>();
+        catalogDisplay.setItems(availableProducts); // Matches Amirah's book list
+
+        // Dynamic search listeners linking to your search method
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> performSearch(searchField.getText(), filterBox.getValue(), catalogDisplay));
+        filterBox.setOnAction(e -> performSearch(searchField.getText(), filterBox.getValue(), catalogDisplay));
+
+        ListView<Product> cartView = new ListView<>(cartItems); // Matches Amirah's cart items list
+        cartView.setPrefHeight(120);
+
+        Button addToCartBtn = new Button("Add Selected Book to Cart");
+        Button removeCartBtn = new Button("Remove Item from Cart");
+        Button checkoutBtn = new Button("Finalize Order & Print Receipt");
+        Button logoutBtn = new Button("Logout");
+        checkoutBtn.setStyle("-fx-background-color: #1e5e43; -fx-text-fill: white; -fx-font-weight: bold;");
+
+        // Cart addition logic wrapping your teammate's Exception class
+        addToCartBtn.setOnAction(e -> {
+            Product selected = catalogDisplay.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                try {
+                    if (!selected.isAvailable()) {
+                        throw new BookOutOfStockException("The title '" + selected.getTitle() + "' is completely out of stock!");
+                    }
+                    cartItems.add(selected);
+                    System.out.println("[Storefront UI] Successfully staged: " + selected.getTitle());
+                } catch (BookOutOfStockException ex) {
+                    Alert outOfStockAlert = new Alert(Alert.AlertType.ERROR, ex.getMessage());
+                    outOfStockAlert.setTitle("Inventory Exception");
+                    outOfStockAlert.showAndWait();
+                }
+            } else {
+                Alert noSelectAlert = new Alert(Alert.AlertType.WARNING, "Please select a book from the catalog first.");
+                noSelectAlert.showAndWait();
+            }
+        });
+
+        removeCartBtn.setOnAction(e -> {
+            Product selected = cartView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                cartItems.remove(selected);
+            }
+        });
+
+        // Checkout execution node connecting directly to Customer order histories
+        checkoutBtn.setOnAction(e -> {
+            if (cartItems.isEmpty()) {
+                Alert noticeAlert = new Alert(Alert.AlertType.INFORMATION, "Your active basket remains empty.");
+                noticeAlert.showAndWait();
+            } else {
+                StringBuilder invoiceBreakdownBuffer = new StringBuilder("Items Checked Out:\n");
+                double totalCost = 0.0;
+
+                for (Product item : cartItems) {
+                    invoiceBreakdownBuffer.append("- ").append(item.getTitle()).append(" (RM").append(item.getPrice()).append(")\n");
+                    totalCost += item.getPrice();
+                    item.setStock(item.getStock() - 1); 
+                }
+
+                String receiptLogSummaryText = "Total Cost: RM" + totalCost + " | Units: " + cartItems.size();
+
+                // Links directly to the addOrder method your partner made
+                loggedInCustomer.addOrder(receiptLogSummaryText);
+
+                Alert orderSuccessAlert = new Alert(Alert.AlertType.INFORMATION);
+                orderSuccessAlert.setTitle("Transaction Approved");
+                orderSuccessAlert.setHeaderText("Order Processed Successfully!");
+                orderSuccessAlert.setContentText(invoiceBreakdownBuffer.toString() + "\nLogged under Customer Profile context successfully.");
+                orderSuccessAlert.showAndWait();
+
+                cartItems.clear();
+                performSearch(searchField.getText(), filterBox.getValue(), catalogDisplay); 
+            }
+        });
+
+        logoutBtn.setOnAction(e -> {
+            System.out.println("Logging out customer context safely.");
+            stage.close(); 
+        });
+
+        HBox cartControls = new HBox(10, addToCartBtn, removeCartBtn, checkoutBtn, logoutBtn);
+        customerBox.getChildren().addAll(welcomeLabel, searchPanel, new Label("Available Islamic Literature Catalog:"), catalogDisplay, new Label("Your Shopping Cart:"), cartView, cartControls);
+        
+        // Swaps the interface layout dynamically inside Amirah's main root container
+        rootContainer.getChildren().clear();
+        rootContainer.getChildren().add(customerBox);
+    }
+
+    // =========================================================================
+    // DYNAMIC SEARCH CALCULATION METHOD
+    // =========================================================================
+    private void performSearch(String text, String category, ListView<Product> display) {
+        ObservableList<Product> filtered = FXCollections.observableArrayList();
+        for (Product p : availableProducts) {
+            boolean matchText = p.getTitle().toLowerCase().contains(text.toLowerCase()) || 
+                               p.getAuthor().toLowerCase().contains(text.toLowerCase());
+            
+            boolean matchCat = category.equals("All Categories") || p.getCategory().equalsIgnoreCase(category);
+            if (matchText && matchCat) {
+                filtered.add(p);
+            }
+        }
+        display.setItems(filtered);
+    }
