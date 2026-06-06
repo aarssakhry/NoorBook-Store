@@ -147,19 +147,48 @@ public class App extends Application {
 
         // Appends checked display grids directly to inventory models 
         addToCartButton.setOnAction(e -> {
-            if (selectedProductFromGrid != null) {
-                if (selectedProductFromGrid.isAvailable()) { // Checks against Product's available boolean state
-                    cartItems.add(selectedProductFromGrid);
-                    System.out.println("[Member 3 UI Action] Added item to local staging list: " + selectedProductFromGrid.getTitle());
-                } else {
-                    Alert outOfStockAlert = new Alert(Alert.AlertType.ERROR, "Selected text title is depleted from shelves.");
-                    outOfStockAlert.showAndWait();
-                }
-            } else {
-                Alert emptySelectAlert = new Alert(Alert.AlertType.WARNING, "Please pick an item from the layout matrix shelf first.");
-                emptySelectAlert.showAndWait();
+    if (selectedProductFromGrid != null) {
+
+        int quantityInCart = 0;
+
+        for (Product item : cartItems) {
+            if (item.getProductID().equals(
+                    selectedProductFromGrid.getProductID())) {
+                quantityInCart++;
             }
-        });
+        }
+
+        try {
+
+            if (quantityInCart >= selectedProductFromGrid.getStock()) {
+                throw new BookOutOfStockException(
+                    "Only " + selectedProductFromGrid.getStock()
+                    + " unit(s) of "
+                    + selectedProductFromGrid.getTitle()
+                    + " are available."
+                );
+            }
+
+            cartItems.add(selectedProductFromGrid);
+
+        } catch (BookOutOfStockException ex) {
+
+            Alert outOfStockAlert =
+                new Alert(Alert.AlertType.ERROR,
+                          ex.getMessage());
+
+            outOfStockAlert.showAndWait();
+        }
+
+    } else {
+
+        Alert emptySelectAlert =
+            new Alert(Alert.AlertType.WARNING,
+                "Please pick an item from the layout matrix shelf first.");
+
+        emptySelectAlert.showAndWait();
+    }
+});
 
         // Target indexed item drop operations 
         removeFromCartButton.setOnAction(e -> {
@@ -280,7 +309,7 @@ public class App extends Application {
         availableProducts.add(new Product("B03", "Tafsir Ibn Kathir Vol 1", "Imam Ibn Kathir", 60.00, 0, "Tafsir")); // Out of stock sample
         availableProducts.add(new Product("B04", "Riyadhus Saliheen", "Imam Al-Nawawi", 35.00, 8, "Hadith"));
     }
-}
+
 
 // =========================================================================
     // AUTHOR: SYAHIRAH  (MEMBER 3 - CUSTOMER STOREFRONT UI)
@@ -321,24 +350,54 @@ public class App extends Application {
 
         // Cart addition logic wrapping your teammate's Exception class
         addToCartBtn.setOnAction(e -> {
-            Product selected = catalogDisplay.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                try {
-                    if (!selected.isAvailable()) {
-                        throw new BookOutOfStockException("The title '" + selected.getTitle() + "' is completely out of stock!");
-                    }
-                    cartItems.add(selected);
-                    System.out.println("[Storefront UI] Successfully staged: " + selected.getTitle());
-                } catch (BookOutOfStockException ex) {
-                    Alert outOfStockAlert = new Alert(Alert.AlertType.ERROR, ex.getMessage());
-                    outOfStockAlert.setTitle("Inventory Exception");
-                    outOfStockAlert.showAndWait();
+    Product selected = catalogDisplay.getSelectionModel().getSelectedItem();
+
+    if (selected != null) {
+        try {
+
+            int quantityInCart = 0;
+
+            for (Product item : cartItems) {
+                if (item.getProductID().equals(selected.getProductID())) {
+                    quantityInCart++;
                 }
-            } else {
-                Alert noSelectAlert = new Alert(Alert.AlertType.WARNING, "Please select a book from the catalog first.");
-                noSelectAlert.showAndWait();
             }
-        });
+
+            if (quantityInCart >= selected.getStock()) {
+                throw new BookOutOfStockException(
+                    "Only " + selected.getStock()
+                    + " unit(s) of '" + selected.getTitle()
+                    + "' are available in stock."
+                );
+            }
+
+            cartItems.add(selected);
+
+            System.out.println(
+                "[Storefront UI] Successfully staged: "
+                + selected.getTitle()
+            );
+
+        } catch (BookOutOfStockException ex) {
+
+            Alert outOfStockAlert = new Alert(
+                Alert.AlertType.ERROR,
+                ex.getMessage()
+            );
+
+            outOfStockAlert.setTitle("Inventory Exception");
+            outOfStockAlert.showAndWait();
+        }
+    } else {
+
+        Alert noSelectAlert = new Alert(
+            Alert.AlertType.WARNING,
+            "Please select a book from the catalog first."
+        );
+
+        noSelectAlert.showAndWait();
+    }
+});
 
         removeCartBtn.setOnAction(e -> {
             Product selected = cartView.getSelectionModel().getSelectedItem();
@@ -406,4 +465,5 @@ public class App extends Application {
             }
         }
         display.setItems(filtered);
+    }
     }
