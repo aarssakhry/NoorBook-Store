@@ -38,8 +38,8 @@ public class BookCategories {
         return categoryName.equalsIgnoreCase("Quran") 
                 || categoryName.equalsIgnoreCase("Hadith") 
                 || categoryName.equalsIgnoreCase("Tafsir")
-                || categoryName.equalsIgnoreCase("Fiqh") 
-                || categoryName.equalsIgnoreCase("Usuluddin");
+                || categoryName.equalsIgnoreCase("Motivational Books") 
+                || categoryName.equalsIgnoreCase("Children's Islamic Learning");
     }
 
     @Override
