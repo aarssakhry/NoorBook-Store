@@ -75,6 +75,8 @@ public class App extends Application {
             new BookCategories("CAT1", "Quran", "Holy Quran editions"),
             new BookCategories("CAT2", "Hadith", "Prophetic traditions"),
             new BookCategories("CAT3", "Tafsir", "Exegesis collections")
+            new BookCategories("CAT4", "Motivational Books","Inspirational books" ), 
+            new BookCategories("CAT5", "Children's Islamic Learning", "Islamic educational")
 
         );
 
@@ -308,6 +310,10 @@ public class App extends Application {
         availableProducts.add(new Product("B02", "Sahih al-Bukhari Vol 1", "Imam Al-Bukhari", 70.00, 4, "Hadith"));
         availableProducts.add(new Product("B03", "Tafsir Ibn Kathir Vol 1", "Imam Ibn Kathir", 60.00, 0, "Tafsir")); // Out of stock sample
         availableProducts.add(new Product("B04", "Riyadhus Saliheen", "Imam Al-Nawawi", 35.00, 8, "Hadith"));
+        availableProducts.add(new Product("B05", "Atomic Habits", "James Clear", 42.00, 10, "Motivational Books"));
+        availableProducts.add(new Product("B06", "The Secret", "Rhonda Byrne", 48.00, 7, "Motivational Books"));
+        availableProducts.add(new Product("B07", "Athkar Dua Book", "Jannat Al Quran", 30.00, 12, "Children's Islamic Learning"));
+        availableProducts.add(new Product("B08", "Islam For Younger Children", "Ghulam Sarwar", 28.00, 15, "Children's Islamic Learning"));
     }
 
 
