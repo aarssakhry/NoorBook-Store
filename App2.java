@@ -21,12 +21,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 //Primary Application Launcher & Storefront UI Engine
-
-public class App extends Application {
-
 // ==========================================
 // NAME: AMIRAH ARISSA (2517166) 
 // ==========================================
+public class App extends Application {
 
     //UI Layout Nodes
     private GridPane bookGalleryGrid;
