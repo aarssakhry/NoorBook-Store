@@ -1,6 +1,5 @@
 package noorbookstore;
 
-// JavaFX import
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,7 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-// File handling import
+// Additional file handling imports integrated here
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -21,10 +20,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 //Primary Application Launcher & Storefront UI Engine
+
+public class App extends Application {
+
 // ==========================================
 // NAME: AMIRAH ARISSA (2517166) 
 // ==========================================
-public class App extends Application {
 
     //UI Layout Nodes
     private GridPane bookGalleryGrid;
@@ -325,7 +326,7 @@ public class App extends Application {
                     targetProduct.getCategory()
                 );
             }
-            System.out.println("[File Handling Log] Inventory saved to inventory_database.txt");
+            System.out.println("Inventory saved to inventory_database.txt");
         } catch (IOException e) {
             System.out.println("Error saving inventory database file.");
         }
@@ -350,7 +351,7 @@ public class App extends Application {
                 
                 availableProducts.add(new Product(id, title, author, price, stock, category));
             }
-            System.out.println("[File Handling Log] Inventory loaded from inventory_database.txt");
+            System.out.println("Inventory loaded from inventory_database.txt");
         } catch (FileNotFoundException e) {
             System.out.println("inventory_database.txt not found. Initializing fallback defaults.");
             initializeMockDatabase();
@@ -410,10 +411,14 @@ public class App extends Application {
         if (emailResult.isPresent() && !emailResult.get().trim().isEmpty()) {
             buyerEmail = emailResult.get().trim();
         }
+        
+        File dbFile = new File("inventory_database.txt");
+        if (dbFile.exists()) {
+            loadInventory();
 
         // Instantiate our Customer profile class with the input details
         loggedInCustomer = new Customer("U2026", buyerName, buyerEmail, "noorPass99", "Gold");
-
+        }else {
         // Populate standard book item profiles 
         availableProducts.add(new Product("B01", "Al-Mu'allim Quran", "Sheikh Mahmoud", 45.00, 12, "Quran"));
         availableProducts.add(new Product("B02", "Sahih al-Bukhari Vol 1", "Imam Al-Bukhari", 70.00, 4, "Hadith"));
@@ -425,6 +430,7 @@ public class App extends Application {
         availableProducts.add(new Product("B08", "Islam For Younger Children", "Ghulam Sarwar", 28.00, 15, "Children's Islamic Learning"));
         
         saveInventoryToFile(); // Instantly create file layout right away
+        }
     }
 
 
