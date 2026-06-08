@@ -235,11 +235,15 @@ public class App extends Application {
 
                 // Inform user with feedback dialog alerts 
                 Alert orderSuccessAlert = new Alert(Alert.AlertType.INFORMATION);
-                orderSuccessAlert.setTitle("Transaction Approved");
-                orderSuccessAlert.setHeaderText("NoorBook Order Processed Successfully!");
-                orderSuccessAlert.setContentText(invoiceBreakdownBuffer.toString() + "\nLogged under Customer Profile context successfully.");
-                orderSuccessAlert.showAndWait();
-
+orderSuccessAlert.setTitle("Transaction Approved");
+orderSuccessAlert.setHeaderText("NoorBook Order Processed Successfully!");
+orderSuccessAlert.setContentText(
+    invoiceBreakdownBuffer.toString()
+    + "\n----------------------------------"
+    + "\nTotal Price: RM" + String.format("%.2f", structuralAggregateCost)
+    + "\nLogged under Customer Profile context successfully."
+);
+orderSuccessAlert.showAndWait();
                 // Clean out active cart fields
                 cartItems.clear();
                 saveInventoryToFile(); // Persist warehouse quantity changes to text database file
@@ -553,10 +557,15 @@ public class App extends Application {
                 loggedInCustomer.addOrder(receiptLogSummaryText);
 
                 Alert orderSuccessAlert = new Alert(Alert.AlertType.INFORMATION);
-                orderSuccessAlert.setTitle("Transaction Approved");
-                orderSuccessAlert.setHeaderText("Order Processed Successfully!");
-                orderSuccessAlert.setContentText(invoiceBreakdownBuffer.toString() + "\nLogged under Customer Profile context successfully.");
-                orderSuccessAlert.showAndWait();
+orderSuccessAlert.setTitle("Transaction Approved");
+orderSuccessAlert.setHeaderText("Order Processed Successfully!");
+orderSuccessAlert.setContentText(
+    invoiceBreakdownBuffer.toString()
+    + "\n----------------------------------"
+    + "\nTotal Price: RM" + String.format("%.2f", totalCost)
+    + "\nLogged under Customer Profile context successfully."
+);
+orderSuccessAlert.showAndWait();
 
                 cartItems.clear();
                 saveInventoryToFile(); // Update file system metrics
