@@ -1,5 +1,6 @@
 package noorbookstore;
 
+// JavaFX import
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,7 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-// Additional file handling imports integrated here
+// File handling import
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
