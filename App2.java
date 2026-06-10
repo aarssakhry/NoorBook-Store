@@ -475,7 +475,7 @@ orderSuccessAlert.showAndWait();
         Button logoutBtn = new Button("Logout");
         checkoutBtn.setStyle("-fx-background-color: #1e5e43; -fx-text-fill: white; -fx-font-weight: bold;");
 
-        // Cart addition logic wrapping your teammate's Exception class
+        // Cart addition logic 
         addToCartBtn.setOnAction(e -> {
     Product selected = catalogDisplay.getSelectionModel().getSelectedItem();
 
