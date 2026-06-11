@@ -8,6 +8,11 @@ package noorbookstore;
  *
  * @author User
  */
+
+// ==========================================
+// NAME: NUR ATIQAH (2518126) 
+// ==========================================
+
 public class Product {
 
     private String productID;
