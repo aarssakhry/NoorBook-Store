@@ -242,7 +242,7 @@ public class App extends Application {
         rootContainer.getChildren().addAll(headerTitle, customerGreeting);
 
     // =========================================================================
-    // CONTROL PANEL - SYAHIRAH (2517166)
+    // CONTROL PANEL - SYAHIRAH (2516300)
     // =========================================================================
    
         HBox controlPanelRow = new HBox(12);
@@ -287,7 +287,7 @@ public class App extends Application {
         galleryWrapperFrame.getChildren().addAll(shelfLabel, bookGalleryGrid);
 
         // =========================================================================
-        // SHOPPING BASKET - SYAHIRAH (251)
+        // SHOPPING BASKET - SYAHIRAH (2516300)
         // =========================================================================
         VBox basketControlWrapper = new VBox(6);
         basketControlWrapper.setPrefWidth(240);
@@ -439,7 +439,7 @@ public class App extends Application {
                 writer.println(targetProduct.getProductID() + "|" + targetProduct.getTitle() + "|" + targetProduct.getAuthor() + "|" + targetProduct.getPrice() + "|" + targetProduct.getStock() + "|" + targetProduct.getCategory());
             }
     // =========================================================================
-    // EXCEPTION HANDLING -- SOFIYAA (251)
+    // EXCEPTION HANDLING -- SOFIYA (2516342)
     // =========================================================================
         } catch (IOException e) {
             System.out.println("Error saving inventory file.");
@@ -460,7 +460,7 @@ public class App extends Application {
                 availableProducts.add(new Product(data[0], data[1], data[2], Double.parseDouble(data[3]), Integer.parseInt(data[4]), data[5]));
             }
         // =========================================================================
-        // EXCEPTION HANDLING -- SOFIYAA (251)
+        // EXCEPTION HANDLING -- SOFIYA (2516342)
         // =========================================================================
         } catch (FileNotFoundException e) {
             System.out.println("inventory_database.txt not found.");
@@ -479,7 +479,7 @@ public class App extends Application {
         try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(fileName, true))) {
             writer.println(formattedTimestamp + "|" + buyerName + " (" + buyerEmail + ")|" + itemsSummary.trim() + "|" + "RM " + String.format("%.2f", totalCost));
         // =========================================================================
-        // EXCEPTION HANDLING -- SOFIYAA (251)
+        // EXCEPTION HANDLING -- SOFIYA (2516342)
         // =========================================================================
         } catch (IOException e) {
             System.out.println("Error appending transaction to file.");
