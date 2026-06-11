@@ -30,6 +30,7 @@ public class App extends Application {
     private ComboBox<BookCategories> categoryFilter;
     private TextField searchField;
     private ListView<Product> cartListView;
+    
     private Button addToCartButton;
     private Button removeFromCartButton;
     private Button checkoutButton;
@@ -39,6 +40,7 @@ public class App extends Application {
     private final ObservableList<Product> cartItems = FXCollections.observableArrayList();
 
     private Customer loggedInCustomer;
+    private Admin loggedInAdmin;
     private Product selectedProductFromGrid = null;
 
     public static void main(String[] args) {
@@ -95,6 +97,7 @@ public class App extends Application {
                                       new Label("Password:"), loginPasswordField, loginSubmitBtn, registerLinkRow);
 
         // ----------------- REGISTER DETAILS CONTAINER -----------------
+        
         VBox registerBox = new VBox(12);
         registerBox.setMaxWidth(320);
         registerBox.setAlignment(Pos.CENTER_LEFT);
@@ -154,50 +157,79 @@ public class App extends Application {
                 warnAlert.showAndWait();
                 return;
             }
-
-            boolean isAuthenticated = false;
-            File userFile = new File("customer_database.txt");
+    // ==========================================
+    // NAME: NUR ATIQAH (2518126) 
+    // ==========================================
+            boolean isAdminAuthenticated = false;
+            boolean isCustomerAuthenticated = false;
             
-            if (userFile.exists()) {
-                try (Scanner fileScanner = new Scanner(userFile)) {
-                    while (fileScanner.hasNextLine()) {
-                        String line = fileScanner.nextLine();
-                        if (line.trim().isEmpty()) continue;
-                        
-                        String[] data = line.split("\\|");
-                        
-                        // To avoid ArrayIndexOutOfBoundsException
-                        if (data.length >= 5) {
-                            // data[2] = Email, data[3] = Password
-                            if (data[2].equalsIgnoreCase(email) && data[3].equals(password)) {
-                                loggedInCustomer = new Customer(data[0], data[1], data[2], data[3], data[4]);
-                                isAuthenticated = true;
-                                break; 
+            if (email.toLowerCase().contains("@admin.com")) {
+                File adminFile = new File("admin_database.txt");
+                if (adminFile.exists()) {
+                    try (Scanner fileScanner = new Scanner(adminFile)) {
+                        while (fileScanner.hasNextLine()) {
+                            String line = fileScanner.nextLine();
+                            if (line.trim().isEmpty()) continue;
+                            
+                            String[] data = line.split("\\|");
+                            if (data.length >= 5) {
+                                if (data[2].equalsIgnoreCase(email) && data[3].equals(password)) {
+                                    loggedInAdmin = new Admin(data[0], data[1], data[2], data[3], data[4]);
+                                    isAdminAuthenticated = true;
+                                    break;
+                                }
                             }
                         }
+                    } catch (FileNotFoundException ex) {
+                        System.out.println("Admin database file not found.");
                     }
-                } catch (FileNotFoundException ex) {
-                    System.out.println("Customer database file not found.");
                 }
-            } else {
-                System.out.println("Fail customer_database.txt does not exist.");
+            }
+
+            if (!isAdminAuthenticated) {
+                File userFile = new File("customer_database.txt");
+                if (userFile.exists()) {
+                    try (Scanner fileScanner = new Scanner(userFile)) {
+                        while (fileScanner.hasNextLine()) {
+                            String line = fileScanner.nextLine();
+                            if (line.trim().isEmpty()) continue;
+                            
+                            String[] data = line.split("\\|");
+                            if (data.length >= 5) {
+                                if (data[2].equalsIgnoreCase(email) && data[3].equals(password)) {
+                                    loggedInCustomer = new Customer(data[0], data[1], data[2], data[3], data[4]);
+                                    isCustomerAuthenticated = true;
+                                    break; 
+                                }
+                            }
+                        }
+                    } catch (FileNotFoundException ex) {
+                        System.out.println("Customer database file not found.");
+                    }
+                }
             }
             
-            if (isAuthenticated) {
+            if (isAdminAuthenticated) {
+                VBox adminRootContainer = new VBox(15);
+                stage.setScene(new Scene(adminRootContainer, 640, 480));
+                stage.setTitle("NoorBook Store - Active Admin Session");
+                showAdminDashboard(stage, adminRootContainer);
+            } else if (isCustomerAuthenticated) {
                 proceedToMainStorefront(stage); 
             } else {
                 Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Invalid email or password credential match.");
                 errorAlert.showAndWait();
             }
         });
-
+    // ==========================================
+    // NAME: AMIRAH ARISSA (2517166) 
+    // ==========================================
+    
         //New member registration
         registerSubmitBtn.setOnAction(e -> {
             String name = regNameField.getText().trim();
             String email = regEmailField.getText().trim();
             String password = regPasswordField.getText();
-            //String userID = regUserIDField.getText().trim();
-            //String membershipTier = regMembershipTierField.getText().trim();
 
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Alert warnAlert = new Alert(Alert.AlertType.WARNING, "Please complete all registration entry fields.");
@@ -205,15 +237,26 @@ public class App extends Application {
                 return;
             }
 
-            loggedInCustomer = new Customer("U", name, email, password, "Silver");
-            
-            saveCustomerToFile(loggedInCustomer);
-            
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setTitle("Registration Successful");
-            successAlert.setHeaderText("Welcome to NoorBook Store Membership!");
-            successAlert.setContentText("Account created successfully for " + name + ".\nYour membership tier: Silver Member.");
-            successAlert.showAndWait();
+            if (email.toLowerCase().contains("@admin.com")) {
+                loggedInAdmin = new Admin("A" + (System.currentTimeMillis() % 1000), name, email, password, "Admin");
+                saveAdminToFile(loggedInAdmin);
+                
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Registration Successful");
+                successAlert.setHeaderText("Welcome to NoorBook Store System Admin!");
+                successAlert.setContentText("Admin account created successfully for " + name + ".");
+                successAlert.showAndWait();
+            } else {
+               
+                loggedInCustomer = new Customer("U", name, email, password, "Silver");
+                saveCustomerToFile(loggedInCustomer);
+                
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Registration Successful");
+                successAlert.setHeaderText("Welcome to NoorBook Store Membership!");
+                successAlert.setContentText("Account created successfully for " + name + ".\nYour membership tier: Silver Member.");
+                successAlert.showAndWait();
+            }
 
             regNameField.clear(); regEmailField.clear(); regPasswordField.clear();
             loginEmailField.setText(email); 
@@ -224,6 +267,65 @@ public class App extends Application {
 
         stage.setScene(new Scene(rootStack, 420, 420));
         stage.show();
+    }
+    
+    // ==========================================
+    // ADMIN DASHBOARD: NUR ATIQAH (2518126) 
+    // ==========================================
+    private void showAdminDashboard(Stage stage, VBox rootContainer) {
+        rootContainer.getChildren().clear();
+
+        VBox adminBox = new VBox(15);
+        adminBox.setPadding(new Insets(25));
+        adminBox.setStyle("-fx-background-color: #ffffff;");
+
+        Label welcomeLabel = new Label("Admin Command Center | Welcome, " + loggedInAdmin.getName() + " (" + loggedInAdmin.getRole() + ")");
+        welcomeLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #0d47a1;"); 
+
+        Label subLabel = new Label("Global Customer Booking & Purchase Logs Database History:");
+        subLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #333333;");
+
+        ListView<String> historyListView = new ListView<>();
+        ObservableList<String> historyData = FXCollections.observableArrayList();
+
+        try (Scanner fileScanner = new Scanner(new File("order_history_database.txt"))) {
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+                if (line.trim().isEmpty()) continue;
+                
+                String[] splitData = line.split("\\|");
+                if (splitData.length >= 4) {
+                    String record = "📅 " + splitData[0] + " | 👤 " + splitData[1] + "\n📦 Books: " + splitData[2].replace("\n", " ") + " | 💰 " + splitData[3];
+                    historyData.add(record);
+                } else {
+                    historyData.add(line);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            historyData.add("No purchase or booking history logs found inside order_history_database.txt yet.");
+        }
+
+        historyListView.setItems(historyData);
+        historyListView.setPrefHeight(280);
+
+        Button refreshBtn = new Button("Refresh Logs");
+        refreshBtn.setStyle("-fx-background-color: #1976d2; -fx-text-fill: white;");
+        refreshBtn.setOnAction(e -> showAdminDashboard(stage, rootContainer)); 
+
+        Button logoutBtn = new Button("Logout Admin Session");
+        logoutBtn.setStyle("-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold;");
+        
+        // Logik keluar (Logout) Admin ke skrin utama semula
+        logoutBtn.setOnAction(e -> {
+            System.out.println("Logging out admin safely.");
+            loggedInAdmin = null;
+            showLoginAndRegisterStage(stage); 
+        });
+
+        HBox controlBox = new HBox(12, refreshBtn, logoutBtn);
+        adminBox.getChildren().addAll(welcomeLabel, subLabel, historyListView, controlBox);
+        
+        rootContainer.getChildren().add(adminBox);
     }
 
     // =========================================================================
@@ -244,7 +346,6 @@ public class App extends Application {
     // =========================================================================
     // CONTROL PANEL - SYAHIRAH (2516300)
     // =========================================================================
-   
         HBox controlPanelRow = new HBox(12);
         controlPanelRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -266,7 +367,6 @@ public class App extends Application {
         controlPanelRow.getChildren().addAll(new Label("Filter Title:"), searchField, new Label("Category:"), categoryFilter);
         rootContainer.getChildren().add(controlPanelRow);
 
-        // --- Body Split Layout ---
         HBox bodySplitViewLayout = new HBox(20);
         HBox.setHgrow(bodySplitViewLayout, Priority.ALWAYS);
 
@@ -430,25 +530,16 @@ public class App extends Application {
         }
     }
 
-    // =========================================================================
-    // FILE HANDLING -- AMIRAH ARISSA (2517166)
-    // =========================================================================
     private void saveInventoryToFile() {
         try (PrintWriter writer = new PrintWriter("inventory_database.txt")) { 
             for (Product targetProduct : availableProducts) {
                 writer.println(targetProduct.getProductID() + "|" + targetProduct.getTitle() + "|" + targetProduct.getAuthor() + "|" + targetProduct.getPrice() + "|" + targetProduct.getStock() + "|" + targetProduct.getCategory());
             }
-    // =========================================================================
-    // EXCEPTION HANDLING -- SOFIYA (2516342)
-    // =========================================================================
         } catch (IOException e) {
             System.out.println("Error saving inventory file.");
         }
     }
 
-    // =========================================================================
-    // FILE HANDLING -- AMIRAH ARISSA (2517166)
-    // =========================================================================
     private void loadInventory() {
         availableProducts.clear();
         loggedInCustomer = new Customer("U2026", "Ahmad Fauzi", "fauzi@iium.edu.my", "noorPass99", "Gold");
@@ -459,17 +550,11 @@ public class App extends Application {
                 String[] data = line.split("\\|");
                 availableProducts.add(new Product(data[0], data[1], data[2], Double.parseDouble(data[3]), Integer.parseInt(data[4]), data[5]));
             }
-        // =========================================================================
-        // EXCEPTION HANDLING -- SOFIYA (2516342)
-        // =========================================================================
         } catch (FileNotFoundException e) {
             System.out.println("inventory_database.txt not found.");
         }
     }
 
-    // =========================================================================
-    // FILE HANDLING -- AMIRAH ARISSA (2517166)
-    // =========================================================================
     private void saveOrderToHistoryFile(String buyerName, String buyerEmail, String itemsSummary, double totalCost) {
         String fileName = "order_history_database.txt";
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -478,9 +563,6 @@ public class App extends Application {
 
         try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(fileName, true))) {
             writer.println(formattedTimestamp + "|" + buyerName + " (" + buyerEmail + ")|" + itemsSummary.trim() + "|" + "RM " + String.format("%.2f", totalCost));
-        // =========================================================================
-        // EXCEPTION HANDLING -- SOFIYA (2516342)
-        // =========================================================================
         } catch (IOException e) {
             System.out.println("Error appending transaction to file.");
         }
@@ -501,23 +583,30 @@ public class App extends Application {
             availableProducts.add(new Product("B08", "Islam For Younger Children", "Ghulam Sarwar", 28.00, 15, "Children's Islamic Learning"));
             
             saveInventoryToFile(); 
-           
         }
         
         File userFile = new File("customer_database.txt");
         if (!userFile.exists()) {
             Customer mockUser = new Customer("U2026", "Ahmad Fauzi", "fauzi@iium.edu.my", "noorPass99", "Gold");
             saveCustomerToFile(mockUser);
+        }
     }
-    
-    
-}
+
     private void saveCustomerToFile(Customer customer) {
-    String fileName = "customer_database.txt";
-    try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(fileName, true))) {
-        writer.println(customer.getUserID() + "|" + customer.getName() + "|" + customer.getEmail() + "|" + customer.getPassword() + "|" + customer.getMembershipTier());
-    } catch (IOException e) {
-        System.out.println("Error saving customer data to file.");
+        String fileName = "customer_database.txt";
+        try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(fileName, true))) {
+            writer.println(customer.getUserID() + "|" + customer.getName() + "|" + customer.getEmail() + "|" + customer.getPassword() + "|" + customer.getMembershipTier());
+        } catch (IOException e) {
+            System.out.println("Error saving customer data to file.");
+        }
     }
+
+    private void saveAdminToFile(Admin admin) {
+        String fileName = "admin_database.txt";
+        try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(fileName, true))) {
+            writer.println(admin.getUserID() + "|" + admin.getName() + "|" + admin.getEmail() + "|" + admin.getPassword() + "|" + admin.getRole());
+        } catch (IOException e) {
+            System.out.println("Error saving admin data to file.");
+        }
     }
 }
