@@ -3,7 +3,6 @@ package noorbookstore;
 // ==========================================
 // NAME: SYAHIRAH (2516300)
 // ==========================================
-// Calculate discount based on customer's membership
 
 public class Membership {
     
@@ -11,14 +10,14 @@ public class Membership {
         if (type == null) return currentPrice;
         
         switch (type.toUpperCase()) {
-            case "PLATINUM":
-                return currentPrice * 0.85; // 15% discount
             case "GOLD":
-                return currentPrice * 0.90; // 10% discount
+                return currentPrice * 0.85;  // 15% discount
             case "SILVER":
-                return currentPrice * 0.95; // 5% discount
+                return currentPrice * 0.90;  // 10% discount
+            case "BRONZE":
+                return currentPrice * 0.95;  // 5% discount
             default:
-                return currentPrice; // no discount
-     }
-  }
+                return currentPrice;        // "NONE" -> no discount
+        }
+    }
 }
