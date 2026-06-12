@@ -4,10 +4,10 @@
  */
 package noorbookstore;
 
-/**
- *
- * @author USER
- */
+// ==========================================
+// NAME: ZULAIKHA (2514396) 
+// ==========================================
+
 //INHERITANCE
 class Admin extends User {
     
