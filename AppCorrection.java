@@ -89,6 +89,9 @@ public class App extends Application {
         stage.show();
     }
 
+    // ==========================================
+    // NAME: AMIRAH ARISSA (2517166) 
+    // ==========================================
     private void showLoginAndRegisterStage(Stage stage) {
         StackPane rootStack = new StackPane();
         rootStack.setPadding(new Insets(25));
@@ -148,6 +151,9 @@ public class App extends Application {
         
         loginBox.getChildren().addAll(loginSubmitBtn, registerLinkRow, backToPortalBtn);
 
+        // ==========================================
+        // NAME: AMIRAH ARISSA (2517166) 
+        // ==========================================
         // PANEL 2: REGISTRATION LAYOUT
         VBox registerBox = new VBox(11);
         registerBox.setMaxWidth(340);
@@ -172,7 +178,10 @@ public class App extends Application {
         membershipTierDropdown.getItems().addAll("None", "Bronze", "Silver", "Gold");
         membershipTierDropdown.setValue("None"); 
         membershipTierDropdown.setMaxWidth(Double.MAX_VALUE);
-        
+
+        // ==========================================
+        // NAME: AMIRAH ARISSA (2517166) 
+        // ==========================================
         Button registerSubmitBtn = new Button("Register Account");
         registerSubmitBtn.setStyle("-fx-background-color: #1565c0; -fx-text-fill: white; -fx-font-weight: bold;");
         registerSubmitBtn.setMaxWidth(Double.MAX_VALUE);
@@ -254,7 +263,10 @@ public class App extends Application {
                 }
             }
         });
-        
+
+        // ==========================================
+        // NAME: AMIRAH ARISSA (2517166) 
+        // ==========================================
         registerSubmitBtn.setOnAction(e -> {
             String name = regNameField.getText().trim();
             String email = regEmailField.getText().trim();
