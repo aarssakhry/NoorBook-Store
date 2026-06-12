@@ -4,10 +4,10 @@
  */
 package noorbookstore;
 
-/**
- *
- * @author USER
- */
+// ==========================================
+// NAME: ZULAIKHA (2514396) 
+// ==========================================
+
 //ABSTRACTION
 abstract class User {
     
