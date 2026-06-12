@@ -440,22 +440,49 @@ public class App extends Application {
                 new Alert(Alert.AlertType.INFORMATION, "Product registered successfully!").showAndWait();
             });
 
-            editBtn.setOnAction(e -> {
+             editBtn.setOnAction(e -> {
                 Product selected = prodListView.getSelectionModel().getSelectedItem();
                 if (selected != null) {
-                    selected.setTitle(titleInpt.getText()); selected.setAuthor(authInpt.getText());
-                    selected.setPrice(Double.parseDouble(priceInpt.getText())); selected.setStock(Integer.parseInt(stockInpt.getText()));
-                    selected.setCategory(catInpt.getText());
-                    saveInventoryToFile(); prodListView.refresh();
-                    new Alert(Alert.AlertType.INFORMATION, "Product parameters updated!").showAndWait();
+                    //Validate fields are not empty before editing
+                    if(titleInpt.getText().isEmpty() || priceInpt.getText().isEmpty() || stockInpt.getText().isEmpty()){
+                        new Alert(Alert.AlertType.WARNING, "Title, price, and stock fields cannot be empty.").showAndWait();
+                        return;
+                    }
+                    try{
+                        //Update all editable fields
+                       selected.setTitle(titleInpt.getText()); 
+                       selected.setAuthor(authInpt.getText());
+                       selected.setPrice(Double.parseDouble(priceInpt.getText())); 
+                       selected.setStock(Integer.parseInt(stockInpt.getText()));
+                       selected.setCategory(catInpt.getText());
+                       //Save updated inventory to file and refresh list
+                       saveInventoryToFile();
+                       prodListView.refresh();
+                       //Clear fields and re-enable ID field after edit
+                       idInpt.clear();
+                       titleInpt.clear();
+                       authInpt.clear();
+                       priceInpt.clear();
+                       stockInpt.clear();
+                       catInpt.clear();
+                       idInpt.setEditable(true);
+                       new Alert(Alert.AlertType.INFORMATION, "Product \"" + selected.getTitle() + "\" updates successfully!").showAndWait();
+                    }
+                    catch(NumberFormatException ex){
+                        new Alert(Alert.AlertType.WARNING, "Price must be a number (e.g. 45.90) and stock must be a whole number.").showAndWait();
+                    }
+                }
+                else{
+                    new Alert(Alert.AlertType.WARNING, "Please select a product from the list to edit.").showAndWait();
                 }
             });
-
-            delBtn.setOnAction(e -> {
+            
+            delBtn.setOnAction(e->{
                 Product selected = prodListView.getSelectionModel().getSelectedItem();
-                if (selected != null) {
-                    availableProducts.remove(selected); saveInventoryToFile();
-                    new Alert(Alert.AlertType.INFORMATION, "Item removed from inventory records.").showAndWait();
+                if (selected!=null) {
+                availableProducts.remove(selected);
+                saveInventoryToFile();
+                new Alert(Alert.AlertType.INFORMATION, "Item removed from inventory records.").showAndWait();
                 }
             });
 
