@@ -9,7 +9,7 @@ package noorbookstore;
 // ==========================================
 
 //ABSTRACTION
-abstract class User {
+public abstract class User {
     
     //ENCAPSULATION
     private String userID;
@@ -40,6 +40,9 @@ abstract class User {
     }
     
     //Setters method
+    public void setUserID(String userID){
+        this.userID = userID;
+    }
     public void setName(String name){
         this.name = name;
     }
