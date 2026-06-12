@@ -1,7 +1,10 @@
 package noorbookstore;
 
-// SYAHIRAH (2516300)
+// ==========================================
+// NAME: SYAHIRAH (2516300)
+// ==========================================
 // Calculate discount based on customer's membership
+
 public class Membership {
     
     public static double applyMembershipDiscount(String type, double currentPrice) {
