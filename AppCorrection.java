@@ -1,7 +1,5 @@
 package noorbookstore;
 
-package noorbookstore;
-
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -68,7 +66,7 @@ public class App extends Application {
         Label selectionSubPrompt = new Label("Please select your access gateway channel:");
         selectionSubPrompt.setStyle("-fx-font-size: 14px; -fx-text-fill: #4b5563;");
 
-        Button enterAsBuyerBtn = new Button("Enter as Buyer / Customer");
+        Button enterAsBuyerBtn = new Button("Enter as Customer");
         enterAsBuyerBtn.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-pref-width: 260px; -fx-pref-height: 45px;");
         
         Button enterAsAdminBtn = new Button("Enter as System Admin");
@@ -107,12 +105,12 @@ public class App extends Application {
         loginTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + (isAdminModeChoice ? "#0d47a1;" : "#1b5e20;"));
         
         TextField loginEmailField = new TextField();
-        loginEmailField.setPromptText(isAdminModeChoice ? "username@admin.com" : "Enter customer email");
+        loginEmailField.setPromptText(isAdminModeChoice ? "username@admin.com" : "Enter email");
         
         PasswordField loginPasswordField = new PasswordField();
-        loginPasswordField.setPromptText("Enter secret security password");
+        loginPasswordField.setPromptText("Enter password");
         
-        Label adminRoleLabel = new Label("Select Admin Role Allocation:");
+        Label adminRoleLabel = new Label("Select Admin Role:");
         ComboBox<String> adminRoleDropdown = new ComboBox<>();
         adminRoleDropdown.getItems().addAll("Super Admin", "Product Manager");
         adminRoleDropdown.setValue("Super Admin");
@@ -205,13 +203,13 @@ public class App extends Application {
             }
 
             if (isAdminModeChoice) {
-                // RESTRICTION CHECK: Validates email ends with @admin.com
+                // RESTRICTION CHECK: Email validation constraint pattern checker rule
                 if (!email.toLowerCase().endsWith("@admin.com")) {
                     new Alert(Alert.AlertType.ERROR, "Access Denied! Admin emails must end with '@admin.com'.").showAndWait();
                     return;
                 }
 
-                // PASSWORD FLEXIBILITY: Accept any password text provided by user
+               // PASSWORD FLEXIBILITY: Accept any password text provided by user
                 String selectedRole = adminRoleDropdown.getValue();
                 String generatedUsername = email.split("@")[0]; // Dynamically grabs the prefix name segment
                 
@@ -221,8 +219,8 @@ public class App extends Application {
                 stage.setScene(new Scene(adminRootContainer, 950, 620));
                 stage.setTitle("NoorBook Store - Controlled System Admin Workspace");
                 showAdminDashboard(stage, adminRootContainer);
-                
-            } else {
+                 }
+            else {
                 if (!email.toLowerCase().contains("@gmail.com")) {
                     new Alert(Alert.AlertType.ERROR, "Invalid email pattern! Must consist of '@gmail.com'.").showAndWait();
                     return;
@@ -272,8 +270,58 @@ public class App extends Application {
                 new Alert(Alert.AlertType.ERROR, "Registration rejected! Email format must consist of '@gmail.com'.").showAndWait();
                 return;
             }
+            // EXCEPTION HANDLING (AI) - SOFIYA
+            // Check if email already exists
+            File emailCheckFile = new File("customer_database.txt");
 
-            loggedInCustomer = new Customer("U" + (System.currentTimeMillis() % 1000), name, email, password, chosenTier);
+            if (emailCheckFile.exists()) {
+
+                try (Scanner emailScanner = new Scanner(emailCheckFile)) {
+
+                  while (emailScanner.hasNextLine()) {
+
+                    String line = emailScanner.nextLine();
+
+            if (!line.trim().isEmpty()) {
+
+                    String[] data = line.split("\\|");
+
+            if (data.length >= 5 && data[2].equalsIgnoreCase(email)) {
+
+                    new Alert(Alert.AlertType.ERROR,
+                            "Registration failed! This email is already registered.")
+                            .showAndWait();
+
+                    return;
+                }
+            }
+        }
+
+    } catch (FileNotFoundException ex) {
+
+        System.out.println("Customer database file not found.");
+    }
+}
+
+            //Loop to count existing users and generate new user ID 
+            int nextUserNumber = 001;
+            File existingUserFile = new File("customer_database.txt");
+// EXCEPTION HANDLING (AI)- SOFIYA            
+            if(existingUserFile.exists()) {
+               try (Scanner counterScanner = new Scanner(existingUserFile)) {
+                 while(counterScanner.hasNextLine()) {
+                 String line = counterScanner.nextLine();
+            if(!line.trim().isEmpty()) {
+                nextUserNumber++;
+            }
+        }
+
+    } catch (FileNotFoundException ex) {
+        System.out.println("Customer database file not found.");
+    }
+}
+            String generatedUserID = "U" + nextUserNumber;
+            loggedInCustomer = new Customer(generatedUserID, name, email, password, chosenTier);
             saveCustomerToFile(loggedInCustomer);
             
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
@@ -432,30 +480,145 @@ public class App extends Application {
             Button delBtn = new Button("Delete Product"); delBtn.setStyle("-fx-background-color: #dc2626; -fx-text-fill: white;");
             crudActionButtonsRow.getChildren().addAll(addBtn, editBtn, delBtn);
             
+            // sofiya
             addBtn.setOnAction(e -> {
-                idInpt.setEditable(true);
-                if (idInpt.getText().isEmpty() || titleInpt.getText().isEmpty()) return;
-                availableProducts.add(new Product(idInpt.getText(), titleInpt.getText(), authInpt.getText(), Double.parseDouble(priceInpt.getText()), Integer.parseInt(stockInpt.getText()), catInpt.getText()));
-                saveInventoryToFile(); prodListView.refresh();
-                new Alert(Alert.AlertType.INFORMATION, "Product registered successfully!").showAndWait();
-            });
 
-            editBtn.setOnAction(e -> {
+    idInpt.setEditable(true);
+
+    // Empty field validation
+    if (idInpt.getText().isEmpty() ||
+        titleInpt.getText().isEmpty() ||
+        priceInpt.getText().isEmpty() ||
+        stockInpt.getText().isEmpty() ||
+        catInpt.getText().isEmpty()) {
+
+        new Alert(Alert.AlertType.WARNING,
+                "All fields including category must be filled.")
+                .showAndWait();
+
+        return;
+    }
+
+    // Valid category checker
+    String categoryInput = catInpt.getText().trim();
+
+    boolean validCategory =
+            categoryInput.equalsIgnoreCase("Quran") ||
+            categoryInput.equalsIgnoreCase("Hadith") ||
+            categoryInput.equalsIgnoreCase("Tafsir") ||
+            categoryInput.equalsIgnoreCase("Motivational Books") ||
+            categoryInput.equalsIgnoreCase("Children's Islamic Learning");
+
+    if (!validCategory) {
+
+        new Alert(Alert.AlertType.ERROR,
+                "Invalid category!\n\n" +
+                "Allowed categories only:\n" +
+                "- Quran\n" +
+                "- Hadith\n" +
+                "- Tafsir\n" +
+                "- Motivational Books\n" +
+                "- Children's Islamic Learning")
+                .showAndWait();
+
+        return;
+    }
+
+    // Duplicate Book ID checker
+    for (Product existingProduct : availableProducts) {
+
+        if (existingProduct.getProductID()
+                .equalsIgnoreCase(idInpt.getText().trim())) {
+
+            new Alert(Alert.AlertType.ERROR,
+                    "Duplicate Book ID detected!\n" +
+                    "Each book must have unique code.")
+                    .showAndWait();
+
+            return;
+        }
+    }
+
+    try {
+
+        Product newBook = new Product(
+                idInpt.getText().trim(),
+                titleInpt.getText().trim(),
+                authInpt.getText().trim(),
+                Double.parseDouble(priceInpt.getText()),
+                Integer.parseInt(stockInpt.getText()),
+                categoryInput
+        );
+
+        availableProducts.add(newBook);
+
+        saveInventoryToFile();
+
+        prodListView.refresh();
+
+        // Clear fields
+        idInpt.clear();
+        titleInpt.clear();
+        authInpt.clear();
+        priceInpt.clear();
+        stockInpt.clear();
+        catInpt.clear();
+
+        new Alert(Alert.AlertType.INFORMATION,
+                "Product added successfully!")
+                .showAndWait();
+
+    } catch (NumberFormatException ex) {
+
+        new Alert(Alert.AlertType.ERROR,
+                "Price must be decimal number and stock must be integer.")
+                .showAndWait();
+    }
+});
+
+             editBtn.setOnAction(e -> {
                 Product selected = prodListView.getSelectionModel().getSelectedItem();
                 if (selected != null) {
-                    selected.setTitle(titleInpt.getText()); selected.setAuthor(authInpt.getText());
-                    selected.setPrice(Double.parseDouble(priceInpt.getText())); selected.setStock(Integer.parseInt(stockInpt.getText()));
-                    selected.setCategory(catInpt.getText());
-                    saveInventoryToFile(); prodListView.refresh();
-                    new Alert(Alert.AlertType.INFORMATION, "Product parameters updated!").showAndWait();
+                    //Validate fields are not empty before editing
+                    if(titleInpt.getText().isEmpty() || priceInpt.getText().isEmpty() || stockInpt.getText().isEmpty()){
+                        new Alert(Alert.AlertType.WARNING, "Title, price, and stock fields cannot be empty.").showAndWait();
+                        return;
+                    }
+                    try{
+                        //Update all editable fields
+                       selected.setTitle(titleInpt.getText()); 
+                       selected.setAuthor(authInpt.getText());
+                       selected.setPrice(Double.parseDouble(priceInpt.getText())); 
+                       selected.setStock(Integer.parseInt(stockInpt.getText()));
+                       selected.setCategory(catInpt.getText());
+                       //Save updated inventory to file and refresh list
+                       saveInventoryToFile();
+                       prodListView.refresh();
+                       //Clear fields and re-enable ID field after edit
+                       idInpt.clear();
+                       titleInpt.clear();
+                       authInpt.clear();
+                       priceInpt.clear();
+                       stockInpt.clear();
+                       catInpt.clear();
+                       idInpt.setEditable(true);
+                       new Alert(Alert.AlertType.INFORMATION, "Product \"" + selected.getTitle() + "\" updates successfully!").showAndWait();
+                    }
+                    catch(NumberFormatException ex){
+                        new Alert(Alert.AlertType.WARNING, "Price must be a number (e.g. 45.90) and stock must be a whole number.").showAndWait();
+                    }
+                }
+                else{
+                    new Alert(Alert.AlertType.WARNING, "Please select a product from the list to edit.").showAndWait();
                 }
             });
-
-            delBtn.setOnAction(e -> {
+            
+            delBtn.setOnAction(e->{
                 Product selected = prodListView.getSelectionModel().getSelectedItem();
-                if (selected != null) {
-                    availableProducts.remove(selected); saveInventoryToFile();
-                    new Alert(Alert.AlertType.INFORMATION, "Item removed from inventory records.").showAndWait();
+                if (selected!=null) {
+                availableProducts.remove(selected);
+                saveInventoryToFile();
+                new Alert(Alert.AlertType.INFORMATION, "Item removed from inventory records.").showAndWait();
                 }
             });
 
@@ -586,7 +749,6 @@ public class App extends Application {
         customerPersonalHistoryListView.setPrefHeight(150);
         ObservableList<String> personalHistoryItemsList = FXCollections.observableArrayList();
         
-        // Dynamic past checkouts tracking mechanism mapping loop context
         Runnable parsePersonalHistoryLogsWorker = () -> {
             personalHistoryItemsList.clear();
             File histFile = new File("order_history_database.txt");
