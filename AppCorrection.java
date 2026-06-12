@@ -453,32 +453,48 @@ public class App extends Application {
             }
         });
         
-        checkoutButton.setOnAction(e -> {
-            if (cartItems.isEmpty()) {
-                new Alert(Alert.AlertType.INFORMATION, "Your active basket remains empty.").showAndWait();
-            } else {
-                StringBuilder invoiceBreakdownBuffer = new StringBuilder("Items Checked Out:\n");
-                double structuralAggregateCost = 0.0;
+       checkoutButton.setOnAction(e -> {
+    if (cartItems.isEmpty()) {
+        new Alert(Alert.AlertType.INFORMATION, "Your active basket remains empty.").showAndWait();
+    } else {
+        StringBuilder invoiceBreakdownBuffer = new StringBuilder("Items Checked Out:\n");
+        double structuralAggregateCost = 0.0;
 
-                for (Product item : cartItems) {
-                    invoiceBreakdownBuffer.append("- ").append(item.getTitle()).append(" (RM").append(item.getPrice()).append(")\n");
-                    structuralAggregateCost += item.getPrice();
-                    item.setStock(item.getStock() - 1); 
-                }
+        // Get the logged-in customer's tier (e.g., "Silver", "Gold")
+        String customerTier = loggedInCustomer.getMembershipTier();
 
-                saveOrderToHistoryFile(loggedInCustomer.getName(), loggedInCustomer.getEmail(), invoiceBreakdownBuffer.toString(), structuralAggregateCost);
-                loggedInCustomer.addOrder("Total Cost: RM" + structuralAggregateCost + " | Units: " + cartItems.size());
+        for (Product item : cartItems) {
+            double originalPrice = item.getPrice();
+            
+            // =========================================================================
+            // INTEGRATION WORK: Calling Syahirah's Membership Class
+            // =========================================================================
+            double discountedPrice = Membership.applyMembershipDiscount(customerTier, originalPrice);
+            
+            invoiceBreakdownBuffer.append("- ")
+                .append(item.getTitle())
+                .append(" (Original: RM").append(String.format("%.2f", originalPrice))
+                .append(" -> Member Price: RM").append(String.format("%.2f", discountedPrice))
+                .append(")\n");
+                
+            structuralAggregateCost += discountedPrice;
+            item.setStock(item.getStock() - 1); 
+        }
 
-                Alert orderSuccessAlert = new Alert(Alert.AlertType.INFORMATION);
-                orderSuccessAlert.setTitle("Transaction Approved");
-                orderSuccessAlert.setContentText(invoiceBreakdownBuffer.toString() + "\nTotal Price: RM" + String.format("%.2f", structuralAggregateCost));
-                orderSuccessAlert.showAndWait();
+        // Save order and log data using the updated structuralAggregateCost
+        saveOrderToHistoryFile(loggedInCustomer.getName(), loggedInCustomer.getEmail(), invoiceBreakdownBuffer.toString(), structuralAggregateCost);
+        loggedInCustomer.addOrder("Total Cost: RM" + String.format("%.2f", structuralAggregateCost) + " | Units: " + cartItems.size());
 
-                cartItems.clear();
-                saveInventoryToFile(); 
-                refreshDynamicStorefrontCatalog(searchField.getText(), categoryFilter.getValue());
-            }
-        });
+        Alert orderSuccessAlert = new Alert(Alert.AlertType.INFORMATION);
+        orderSuccessAlert.setTitle("Transaction Approved");
+        orderSuccessAlert.setContentText(invoiceBreakdownBuffer.toString() + "\nTotal Price (After Discounts): RM" + String.format("%.2f", structuralAggregateCost));
+        orderSuccessAlert.showAndWait();
+
+        cartItems.clear();
+        saveInventoryToFile(); 
+        refreshDynamicStorefrontCatalog(searchField.getText(), categoryFilter.getValue());
+    }
+});
 
         primaryStage.setScene(new Scene(rootContainer, 640, 480));
         primaryStage.setTitle("NoorBook Store - Active Storefront Session");
