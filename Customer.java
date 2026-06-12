@@ -14,7 +14,7 @@ public class Customer extends User {
     //ENCAPSULATION
     private String[] orderHistory; //empty array to store order records
     private int orderCount; //to track how many orders have been added
-    private String membershipTier; //e.g. "Bronze", "Silver", "Gold"
+    private String membershipTier; //e.g. "Bronze", "Platinum", "Gold"
     
     //Constructor
     public Customer(String userID, String name, String email, String password, String membershipTier){
