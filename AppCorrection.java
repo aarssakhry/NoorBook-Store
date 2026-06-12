@@ -1,5 +1,7 @@
 package noorbookstore;
 
+package noorbookstore;
+
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -66,7 +68,7 @@ public class App extends Application {
         Label selectionSubPrompt = new Label("Please select your access gateway channel:");
         selectionSubPrompt.setStyle("-fx-font-size: 14px; -fx-text-fill: #4b5563;");
 
-        Button enterAsBuyerBtn = new Button("Enter as Customer");
+        Button enterAsBuyerBtn = new Button("Enter as Buyer / Customer");
         enterAsBuyerBtn.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-pref-width: 260px; -fx-pref-height: 45px;");
         
         Button enterAsAdminBtn = new Button("Enter as System Admin");
@@ -105,12 +107,12 @@ public class App extends Application {
         loginTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + (isAdminModeChoice ? "#0d47a1;" : "#1b5e20;"));
         
         TextField loginEmailField = new TextField();
-        loginEmailField.setPromptText(isAdminModeChoice ? "username@admin.com" : "Enter email");
+        loginEmailField.setPromptText(isAdminModeChoice ? "username@admin.com" : "Enter customer email");
         
         PasswordField loginPasswordField = new PasswordField();
-        loginPasswordField.setPromptText("Enter password");
+        loginPasswordField.setPromptText("Enter secret security password");
         
-        Label adminRoleLabel = new Label("Select Admin Role:");
+        Label adminRoleLabel = new Label("Select Admin Role Allocation:");
         ComboBox<String> adminRoleDropdown = new ComboBox<>();
         adminRoleDropdown.getItems().addAll("Super Admin", "Product Manager");
         adminRoleDropdown.setValue("Super Admin");
@@ -203,25 +205,23 @@ public class App extends Application {
             }
 
             if (isAdminModeChoice) {
-                // RESTRICTION CHECK: Email validation constraint pattern checker rule
+                // RESTRICTION CHECK: Validates email ends with @admin.com
                 if (!email.toLowerCase().endsWith("@admin.com")) {
                     new Alert(Alert.AlertType.ERROR, "Access Denied! Admin emails must end with '@admin.com'.").showAndWait();
                     return;
                 }
 
-                // If template pattern satisfies format check, run value matcher check
-                if (password.equals("admin123")) {
-                    String selectedRole = adminRoleDropdown.getValue();
-                    String generatedUsername = email.split("@")[0]; // Grabs the user part before email domain
-                    loggedInAdmin = new Admin("A-GLOBAL", generatedUsername, email, password, selectedRole);
-                    
-                    VBox adminRootContainer = new VBox(15);
-                    stage.setScene(new Scene(adminRootContainer, 950, 620));
-                    stage.setTitle("NoorBook Store - Controlled System Admin Workspace");
-                    showAdminDashboard(stage, adminRootContainer);
-                } else {
-                    new Alert(Alert.AlertType.ERROR, "Invalid matching security password password.").showAndWait();
-                }
+                // PASSWORD FLEXIBILITY: Accept any password text provided by user
+                String selectedRole = adminRoleDropdown.getValue();
+                String generatedUsername = email.split("@")[0]; // Dynamically grabs the prefix name segment
+                
+                loggedInAdmin = new Admin("A-GLOBAL", generatedUsername, email, password, selectedRole);
+                
+                VBox adminRootContainer = new VBox(15);
+                stage.setScene(new Scene(adminRootContainer, 950, 620));
+                stage.setTitle("NoorBook Store - Controlled System Admin Workspace");
+                showAdminDashboard(stage, adminRootContainer);
+                
             } else {
                 if (!email.toLowerCase().contains("@gmail.com")) {
                     new Alert(Alert.AlertType.ERROR, "Invalid email pattern! Must consist of '@gmail.com'.").showAndWait();
@@ -273,22 +273,7 @@ public class App extends Application {
                 return;
             }
 
-            //Loop to count existing users and generate new user ID 
-            int nextUserNumber = 001;
-            File existingUserFile = new File("customer_database.txt");
-            
-            if(existingUserFile.exists()){
-                Scanner counterScanner = new Scanner(existingUserFile);
-                while(counterScanner.hasNextLine()){
-                    String line = counterScanner.nextLine();
-                    if(!line.trim().isEmpty()){
-                        nextUserNumber++;
-                    }
-                }
-                counterScanner.close();
-            }
-            String generatedUserID = "U" + nextUserNumber;
-            loggedInCustomer = new Customer(generatedUserID, name, email, password, chosenTier);
+            loggedInCustomer = new Customer("U" + (System.currentTimeMillis() % 1000), name, email, password, chosenTier);
             saveCustomerToFile(loggedInCustomer);
             
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
@@ -455,49 +440,22 @@ public class App extends Application {
                 new Alert(Alert.AlertType.INFORMATION, "Product registered successfully!").showAndWait();
             });
 
-             editBtn.setOnAction(e -> {
+            editBtn.setOnAction(e -> {
                 Product selected = prodListView.getSelectionModel().getSelectedItem();
                 if (selected != null) {
-                    //Validate fields are not empty before editing
-                    if(titleInpt.getText().isEmpty() || priceInpt.getText().isEmpty() || stockInpt.getText().isEmpty()){
-                        new Alert(Alert.AlertType.WARNING, "Title, price, and stock fields cannot be empty.").showAndWait();
-                        return;
-                    }
-                    try{
-                        //Update all editable fields
-                       selected.setTitle(titleInpt.getText()); 
-                       selected.setAuthor(authInpt.getText());
-                       selected.setPrice(Double.parseDouble(priceInpt.getText())); 
-                       selected.setStock(Integer.parseInt(stockInpt.getText()));
-                       selected.setCategory(catInpt.getText());
-                       //Save updated inventory to file and refresh list
-                       saveInventoryToFile();
-                       prodListView.refresh();
-                       //Clear fields and re-enable ID field after edit
-                       idInpt.clear();
-                       titleInpt.clear();
-                       authInpt.clear();
-                       priceInpt.clear();
-                       stockInpt.clear();
-                       catInpt.clear();
-                       idInpt.setEditable(true);
-                       new Alert(Alert.AlertType.INFORMATION, "Product \"" + selected.getTitle() + "\" updates successfully!").showAndWait();
-                    }
-                    catch(NumberFormatException ex){
-                        new Alert(Alert.AlertType.WARNING, "Price must be a number (e.g. 45.90) and stock must be a whole number.").showAndWait();
-                    }
-                }
-                else{
-                    new Alert(Alert.AlertType.WARNING, "Please select a product from the list to edit.").showAndWait();
+                    selected.setTitle(titleInpt.getText()); selected.setAuthor(authInpt.getText());
+                    selected.setPrice(Double.parseDouble(priceInpt.getText())); selected.setStock(Integer.parseInt(stockInpt.getText()));
+                    selected.setCategory(catInpt.getText());
+                    saveInventoryToFile(); prodListView.refresh();
+                    new Alert(Alert.AlertType.INFORMATION, "Product parameters updated!").showAndWait();
                 }
             });
-            
-            delBtn.setOnAction(e->{
+
+            delBtn.setOnAction(e -> {
                 Product selected = prodListView.getSelectionModel().getSelectedItem();
-                if (selected!=null) {
-                availableProducts.remove(selected);
-                saveInventoryToFile();
-                new Alert(Alert.AlertType.INFORMATION, "Item removed from inventory records.").showAndWait();
+                if (selected != null) {
+                    availableProducts.remove(selected); saveInventoryToFile();
+                    new Alert(Alert.AlertType.INFORMATION, "Item removed from inventory records.").showAndWait();
                 }
             });
 
@@ -628,6 +586,7 @@ public class App extends Application {
         customerPersonalHistoryListView.setPrefHeight(150);
         ObservableList<String> personalHistoryItemsList = FXCollections.observableArrayList();
         
+        // Dynamic past checkouts tracking mechanism mapping loop context
         Runnable parsePersonalHistoryLogsWorker = () -> {
             personalHistoryItemsList.clear();
             File histFile = new File("order_history_database.txt");
