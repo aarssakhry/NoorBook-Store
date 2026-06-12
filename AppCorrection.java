@@ -25,7 +25,7 @@ public class App extends Application {
     // ==========================================
     // NAME: AMIRAH ARISSA (2517166) 
     // ==========================================
-
+    // UI Layout Nodes
     private GridPane bookGalleryGrid;
     private ComboBox<BookCategories> categoryFilter;
     private TextField searchField;
@@ -50,7 +50,6 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        initializeMockDatabase();
         showRoleSelectionInterface(primaryStage);
     }
 
@@ -97,7 +96,7 @@ public class App extends Application {
         rootStack.setPadding(new Insets(25));
         rootStack.setStyle("-fx-background-color: #f4f6f7;");
 
-        // PANEL 1: SIGN IN INTERFACE
+        // SIGN IN INTERFACE
         VBox loginBox = new VBox(12);
         loginBox.setMaxWidth(340);
         loginBox.setAlignment(Pos.CENTER_LEFT);
@@ -154,7 +153,7 @@ public class App extends Application {
         // ==========================================
         // NAME: AMIRAH ARISSA (2517166) 
         // ==========================================
-        // PANEL 2: REGISTRATION LAYOUT
+        // REGISTRATION LAYOUT
         VBox registerBox = new VBox(11);
         registerBox.setMaxWidth(340);
         registerBox.setAlignment(Pos.CENTER_LEFT);
@@ -182,6 +181,7 @@ public class App extends Application {
         // ==========================================
         // NAME: AMIRAH ARISSA (2517166) 
         // ==========================================
+        // REGISTER PAGE FOR NEW BUYER
         Button registerSubmitBtn = new Button("Register Account");
         registerSubmitBtn.setStyle("-fx-background-color: #1565c0; -fx-text-fill: white; -fx-font-weight: bold;");
         registerSubmitBtn.setMaxWidth(Double.MAX_VALUE);
@@ -218,7 +218,7 @@ public class App extends Application {
                     return;
                 }
 
-               // PASSWORD FLEXIBILITY: Accept any password text provided by user
+               // PASSWORD: Accept any password text entered by user
                 String selectedRole = adminRoleDropdown.getValue();
                 String generatedUsername = email.split("@")[0]; // Dynamically grabs the prefix name segment
                 
@@ -235,6 +235,9 @@ public class App extends Application {
                     return;
                 }
 
+                // ==========================================
+                // NAME: AMIRAH ARISSA (2517166) 
+                // ==========================================
                 boolean customerFound = false;
                 File userFile = new File("customer_database.txt");
                 if (userFile.exists()) {
@@ -285,25 +288,16 @@ public class App extends Application {
             // EXCEPTION HANDLING (AI) - SOFIYA
             // Check if email already exists
             File emailCheckFile = new File("customer_database.txt");
-
             if (emailCheckFile.exists()) {
-
                 try (Scanner emailScanner = new Scanner(emailCheckFile)) {
-
                   while (emailScanner.hasNextLine()) {
-
                     String line = emailScanner.nextLine();
-
             if (!line.trim().isEmpty()) {
-
                     String[] data = line.split("\\|");
-
             if (data.length >= 5 && data[2].equalsIgnoreCase(email)) {
-
                     new Alert(Alert.AlertType.ERROR,
                             "Registration failed! This email is already registered.")
                             .showAndWait();
-
                     return;
                 }
             }
@@ -318,6 +312,7 @@ public class App extends Application {
             //Loop to count existing users and generate new user ID 
             int nextUserNumber = 001;
             File existingUserFile = new File("customer_database.txt");
+            
 // EXCEPTION HANDLING (AI)- SOFIYA            
             if(existingUserFile.exists()) {
                try (Scanner counterScanner = new Scanner(existingUserFile)) {
@@ -667,6 +662,9 @@ public class App extends Application {
         rootContainer.getChildren().add(logoutSessionBtn);
     }
 
+    // ==========================================
+    // NAME: AMIRAH ARISSA (2517166) 
+    // ==========================================
     private void proceedToMainStorefront(Stage primaryStage) {
         VBox rootContainer = new VBox(14);
         rootContainer.setPadding(new Insets(15));
@@ -686,6 +684,9 @@ public class App extends Application {
         searchField.setPromptText("Search book or author...");
         searchField.setPrefWidth(150);
 
+        // ==========================================
+        // NAME: AMIRAH ARISSA (2517166) 
+        // ==========================================
         categoryFilter = new ComboBox<>(); 
         categoryFilter.getItems().addAll(
             new BookCategories("CAT0", "All Categories", "Show all items"),
@@ -937,6 +938,9 @@ public class App extends Application {
         }
     }
 
+    // ==========================================
+    // NAME: AMIRAH ARISSA (2517166) 
+    // ==========================================
     private void saveInventoryToFile() {
         try (PrintWriter writer = new PrintWriter("inventory_database.txt")) { 
             for (Product targetProduct : availableProducts) {
@@ -957,40 +961,25 @@ public class App extends Application {
         } catch (FileNotFoundException e) { System.out.println("inventory_database.txt missing."); }
     }
 
+    // ==========================================
+    // NAME: AMIRAH ARISSA (2517166) 
+    // ==========================================
     private void saveOrderToHistoryFile(String buyerName, String buyerEmail, String itemsSummary, double totalCost) {
         LocalDateTime currentDateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedTimestamp = currentDateTime.format(formatter);
 
+        // USE AI-- 1ST LINE
         try (PrintWriter writer = new PrintWriter(new java.io.FileWriter("order_history_database.txt", true))) {
             writer.println(formattedTimestamp + "|" + buyerName + " (" + buyerEmail + ")|" + itemsSummary.trim() + "|" + "RM " + String.format("%.2f", totalCost));
         } catch (IOException e) { System.out.println("Error appending history record."); }
     }
-    
-    private void initializeMockDatabase() {
-        File dbFile = new File("inventory_database.txt");
-        if (dbFile.exists()) {
-            loadInventory();
-        } else {
-            availableProducts.add(new Product("B01", "Al-Mu'allim Quran", "Sheikh Mahmoud", 45.00, 12, "Quran"));
-            availableProducts.add(new Product("B02", "Sahih al-Bukhari Vol 1", "Imam Al-Bukhari", 70.00, 4, "Hadith"));
-            availableProducts.add(new Product("B03", "Tafsir Ibn Kathir Vol 1", "Imam Ibn Kathir", 60.00, 0, "Tafsir"));
-            availableProducts.add(new Product("B04", "Riyadhus Saliheen", "Imam Al-Nawawi", 35.00, 8, "Hadith"));
-            availableProducts.add(new Product("B05", "Atomic Habits", "James Clear", 42.00, 10, "Motivational Books"));
-            availableProducts.add(new Product("B06", "The Secret", "Rhonda Byrne", 48.00, 7, "Motivational Books"));
-            availableProducts.add(new Product("B07", "Athkar Dua Book", "Jannat Al Quran", 30.00, 12, "Children's Islamic Learning"));
-            availableProducts.add(new Product("B08", "Islam For Younger Children", "Ghulam Sarwar", 28.00, 15, "Children's Islamic Learning"));
-            saveInventoryToFile(); 
-        }
-        
-        File userFile = new File("customer_database.txt");
-        if (!userFile.exists()) {
-            Customer mockUser = new Customer("U2026", "Ahmad Fauzi", "fauzi@gmail.com", "fauzi123", "Gold");
-            saveCustomerToFile(mockUser);
-        }
-    }
 
+    // ==========================================
+    // NAME: AMIRAH ARISSA (2517166) 
+    // ==========================================
     private void saveCustomerToFile(Customer customer) {
+        // USE AI-- 1ST LINE
         try (PrintWriter writer = new PrintWriter(new java.io.FileWriter("customer_database.txt", true))) {
             writer.println(customer.getUserID() + "|" + customer.getName() + "|" + customer.getEmail() + "|" + customer.getPassword() + "|" + customer.getMembershipTier());
         } catch (IOException e) { System.out.println("Error saving customer text database."); }
