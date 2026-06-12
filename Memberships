@@ -1,1 +1,20 @@
+package noorbookstoretest;
 
+// SYAHIRAH (2516300)
+// Calculate discount based on customer's membership
+public class Membership {
+    
+    public static double applyMembershipDiscount(String type, double currentPrice) {
+        if (type == null) return currentPrice;
+        
+        switch (type.toUpperCase()) {
+            case "PLATINUM":
+                return currentPrice * 0.85; // 15% discount
+            case "GOLD":
+                return currentPrice * 0.90; // 10% discount
+            case "SILVER":
+                return currentPrice * 0.95; // 5% discount
+            default:
+                return currentPrice; // no discount
+    }
+}
