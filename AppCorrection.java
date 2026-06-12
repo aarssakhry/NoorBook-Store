@@ -273,7 +273,22 @@ public class App extends Application {
                 return;
             }
 
-            loggedInCustomer = new Customer("U" + (System.currentTimeMillis() % 1000), name, email, password, chosenTier);
+            //Loop to count existing users and generate new user ID 
+            int nextUserNumber = 001;
+            File existingUserFile = new File("customer_database.txt");
+            
+            if(existingUserFile.exists()){
+                Scanner counterScanner = new Scanner(existingUserFile);
+                while(counterScanner.hasNextLine()){
+                    String line = counterScanner.nextLine();
+                    if(!line.trim().isEmpty()){
+                        nextUserNumber++;
+                    }
+                }
+                counterScanner.close();
+            }
+            String generatedUserID = "U" + nextUserNumber;
+            loggedInCustomer = new Customer(generatedUserID, name, email, password, chosenTier);
             saveCustomerToFile(loggedInCustomer);
             
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
