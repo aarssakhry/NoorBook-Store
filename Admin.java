@@ -9,7 +9,7 @@ package noorbookstore;
 // ==========================================
 
 //INHERITANCE
-class Admin extends User {
+public class Admin extends User {
     
     //ENCAPSULATION
     private String role; //e.g. "Super Admin", "Product Manager"
