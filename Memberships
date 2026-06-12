@@ -19,5 +19,6 @@ public class Membership {
                 return currentPrice * 0.95; // 5% discount
             default:
                 return currentPrice; // no discount
-    }
+     }
+  }
 }
