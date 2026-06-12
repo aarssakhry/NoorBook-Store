@@ -684,7 +684,10 @@ public class App extends Application {
             new BookCategories("CAT5", "Children's Islamic Learning", "Islamic educational")
         );
         categoryFilter.setValue(categoryFilter.getItems().get(0)); 
-
+        
+         // ==========================================
+        // NAME: SYAHIRAH (2516300) ! USE AI !
+        // ==========================================
         Button joinMembershipBtn = new Button("🌟 Join Membership Plan Now");
         joinMembershipBtn.setStyle("-fx-background-color: #ff9100; -fx-text-fill: black; -fx-font-weight: bold;");
         
