@@ -16,16 +16,16 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
-// Primary Application Launcher & Storefront UI Engine
 public class App extends Application {
 
-// ==========================================
-// NAME: AMIRAH ARISSA (2517166) 
-// ==========================================
+    // ==========================================
+    // NAME: AMIRAH ARISSA (2517166) 
+    // ==========================================
 
-    // UI Layout Nodes 
     private GridPane bookGalleryGrid;
     private ComboBox<BookCategories> categoryFilter;
     private TextField searchField;
@@ -35,13 +35,14 @@ public class App extends Application {
     private Button removeFromCartButton;
     private Button checkoutButton;
     
-    // Internal Data Lists 
     private final ObservableList<Product> availableProducts = FXCollections.observableArrayList();
     private final ObservableList<Product> cartItems = FXCollections.observableArrayList();
 
     private Customer loggedInCustomer;
     private Admin loggedInAdmin;
     private Product selectedProductFromGrid = null;
+    
+    private boolean isAdminModeChoice = false;
 
     public static void main(String[] args) {
         launch(args); 
@@ -49,309 +50,466 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("NoorBook Store - Secure Gateway");
-
-        // Bootstrap data models 
         initializeMockDatabase();
-
-        // Show login page first for user that already register else click register for those new member
-        showLoginAndRegisterStage(primaryStage);
+        showRoleSelectionInterface(primaryStage);
     }
 
-    // =========================================================================
-    // LATEST GATEWAY: LOGIN & REGISTRATION 
-    // =========================================================================
+    private void showRoleSelectionInterface(Stage stage) {
+        VBox rootSelectionBox = new VBox(20);
+        rootSelectionBox.setAlignment(Pos.CENTER);
+        rootSelectionBox.setPadding(new Insets(40));
+        rootSelectionBox.setStyle("-fx-background-color: #f0f4f1;");
+
+        Label welcomeTitle = new Label("Welcome to NoorBook Store");
+        welcomeTitle.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1b5e20;");
+        
+        Label selectionSubPrompt = new Label("Please select your access gateway channel:");
+        selectionSubPrompt.setStyle("-fx-font-size: 14px; -fx-text-fill: #4b5563;");
+
+        Button enterAsBuyerBtn = new Button("Enter as Customer");
+        enterAsBuyerBtn.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-pref-width: 260px; -fx-pref-height: 45px;");
+        
+        Button enterAsAdminBtn = new Button("Enter as System Admin");
+        enterAsAdminBtn.setStyle("-fx-background-color: #0d47a1; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-pref-width: 260px; -fx-pref-height: 45px;");
+
+        rootSelectionBox.getChildren().addAll(welcomeTitle, selectionSubPrompt, enterAsBuyerBtn, enterAsAdminBtn);
+
+        enterAsBuyerBtn.setOnAction(e -> {
+            isAdminModeChoice = false;
+            showLoginAndRegisterStage(stage);
+        });
+
+        enterAsAdminBtn.setOnAction(e -> {
+            isAdminModeChoice = true;
+            showLoginAndRegisterStage(stage);
+        });
+
+        stage.setScene(new Scene(rootSelectionBox, 450, 350));
+        stage.setTitle("NoorBook Store - Gateway Portal Selection");
+        stage.show();
+    }
+
     private void showLoginAndRegisterStage(Stage stage) {
         StackPane rootStack = new StackPane();
-        rootStack.setPadding(new Insets(30));
+        rootStack.setPadding(new Insets(25));
         rootStack.setStyle("-fx-background-color: #f4f6f7;");
 
-        // ----------------- PANEL 1: LOGIN CONTAINER -----------------
+        // PANEL 1: SIGN IN INTERFACE
         VBox loginBox = new VBox(12);
-        loginBox.setMaxWidth(320);
+        loginBox.setMaxWidth(340);
         loginBox.setAlignment(Pos.CENTER_LEFT);
         loginBox.setPadding(new Insets(20));
         loginBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8;");
         
-        Label loginTitle = new Label("Login to NoorBook Store");
-        loginTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1b5e20;");
+        Label loginTitle = new Label(isAdminModeChoice ? "Admin Authentication Panel" : "Customer Log-In Hub");
+        loginTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + (isAdminModeChoice ? "#0d47a1;" : "#1b5e20;"));
         
         TextField loginEmailField = new TextField();
-        loginEmailField.setPromptText("Enter your email address");
+        loginEmailField.setPromptText(isAdminModeChoice ? "username@admin.com" : "Enter email");
         
         PasswordField loginPasswordField = new PasswordField();
-        loginPasswordField.setPromptText("Enter your password");
+        loginPasswordField.setPromptText("Enter password");
         
-        Button loginSubmitBtn = new Button("Sign In");
-        loginSubmitBtn.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;");
+        Label adminRoleLabel = new Label("Select Admin Role:");
+        ComboBox<String> adminRoleDropdown = new ComboBox<>();
+        adminRoleDropdown.getItems().addAll("Super Admin", "Product Manager");
+        adminRoleDropdown.setValue("Super Admin");
+        adminRoleDropdown.setMaxWidth(Double.MAX_VALUE);
+        
+        if (!isAdminModeChoice) {
+            adminRoleLabel.setVisible(false);
+            adminRoleDropdown.setVisible(false);
+        }
+        
+        Button loginSubmitBtn = new Button(isAdminModeChoice ? "Verify Admin Credentials" : "Sign In");
+        loginSubmitBtn.setStyle("-fx-background-color: " + (isAdminModeChoice ? "#0d47a1;" : "#2e7d32;") + " -fx-text-fill: white; -fx-font-weight: bold;");
         loginSubmitBtn.setMaxWidth(Double.MAX_VALUE);
 
         HBox registerLinkRow = new HBox(5);
         registerLinkRow.setAlignment(Pos.CENTER);
-        Label newBuyerLabel = new Label("New buyer?");
-        Hyperlink registerLink = new Hyperlink("Register an account here");
+        Label newBuyerLabel = new Label("Need an account?");
+        Hyperlink registerLink = new Hyperlink("Create one here");
         registerLink.setStyle("-fx-text-fill: #1565c0; -fx-underline: true;");
         registerLinkRow.getChildren().addAll(newBuyerLabel, registerLink);
 
-        loginBox.getChildren().addAll(loginTitle, new Label("Email:"), loginEmailField, 
-                                      new Label("Password:"), loginPasswordField, loginSubmitBtn, registerLinkRow);
+        if (isAdminModeChoice) {
+            registerLinkRow.setVisible(false);
+        }
 
-        // ----------------- REGISTER DETAILS CONTAINER -----------------
+        Button backToPortalBtn = new Button("← Back to Role Selection");
+        backToPortalBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #6b7280; -fx-underline: true;");
+
+        loginBox.getChildren().addAll(loginTitle, new Label("Email Address Account:"), loginEmailField, 
+                                      new Label("Password Access Code:"), loginPasswordField);
         
-        VBox registerBox = new VBox(12);
-        registerBox.setMaxWidth(320);
+        if (isAdminModeChoice) {
+            loginBox.getChildren().addAll(adminRoleLabel, adminRoleDropdown);
+        }
+        
+        loginBox.getChildren().addAll(loginSubmitBtn, registerLinkRow, backToPortalBtn);
+
+        // PANEL 2: REGISTRATION LAYOUT
+        VBox registerBox = new VBox(11);
+        registerBox.setMaxWidth(340);
         registerBox.setAlignment(Pos.CENTER_LEFT);
         registerBox.setPadding(new Insets(20));
         registerBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8;");
         registerBox.setVisible(false); 
 
-        Label registerTitle = new Label("Register Information Details");
+        Label registerTitle = new Label("Join NoorBook Membership");
         registerTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1565c0;");
         
         TextField regNameField = new TextField();
-        regNameField.setPromptText("Enter full name");
+        regNameField.setPromptText("Enter real full name");
         
         TextField regEmailField = new TextField();
-        regEmailField.setPromptText("Enter email address");
+        regEmailField.setPromptText("example@gmail.com");
         
         PasswordField regPasswordField = new PasswordField();
-        regPasswordField.setPromptText("Create secure password");
+        regPasswordField.setPromptText("Create secure password code");
         
-        //TextField regUserIDField = new TextField();
+        ComboBox<String> membershipTierDropdown = new ComboBox<>();
+        membershipTierDropdown.getItems().addAll("None", "Bronze", "Silver", "Gold");
+        membershipTierDropdown.setValue("None"); 
+        membershipTierDropdown.setMaxWidth(Double.MAX_VALUE);
         
-        //TextField regMembershipTierField = new TextField();
-
-        Button registerSubmitBtn = new Button("Register & Join Membership");
+        Button registerSubmitBtn = new Button("Register Account");
         registerSubmitBtn.setStyle("-fx-background-color: #1565c0; -fx-text-fill: white; -fx-font-weight: bold;");
         registerSubmitBtn.setMaxWidth(Double.MAX_VALUE);
 
-        Hyperlink backToLoginLink = new Hyperlink("← Back to Login");
+        Hyperlink backToLoginLink = new Hyperlink("← Cancel and Login");
         backToLoginLink.setStyle("-fx-text-fill: #555555;");
         
-        registerBox.getChildren().addAll(registerTitle, new Label("Full Name:"), regNameField, 
+        registerBox.getChildren().addAll(registerTitle, 
+                                         new Label("Full Name:"), regNameField, 
                                          new Label("Email Address:"), regEmailField, 
-                                         new Label("Password:"), regPasswordField, registerSubmitBtn, backToLoginLink);
+                                         new Label("Password Code:"), regPasswordField, 
+                                         new Label("Select Membership Tier Plan:"), membershipTierDropdown,
+                                         registerSubmitBtn, backToLoginLink);
 
         rootStack.getChildren().addAll(loginBox, registerBox);
 
-        // --- INTERACTION SWITCHING LOGIC ---
-        // registration details
-        registerLink.setOnAction(e -> {
-            loginBox.setVisible(false);
-            registerBox.setVisible(true);
-        });
+        registerLink.setOnAction(e -> { loginBox.setVisible(false); registerBox.setVisible(true); });
+        backToLoginLink.setOnAction(e -> { registerBox.setVisible(false); loginBox.setVisible(true); });
+        backToPortalBtn.setOnAction(e -> showRoleSelectionInterface(stage));
 
-        //back to login
-        backToLoginLink.setOnAction(e -> {
-            registerBox.setVisible(false);
-            loginBox.setVisible(true);
-        });
-
-        //login verification
         loginSubmitBtn.setOnAction(e -> {
             String email = loginEmailField.getText().trim();
             String password = loginPasswordField.getText();
 
             if (email.isEmpty() || password.isEmpty()) {
-                Alert warnAlert = new Alert(Alert.AlertType.WARNING, "Sila masukkan email dan password.");
-                warnAlert.showAndWait();
+                new Alert(Alert.AlertType.WARNING, "Please completely fill in email and password fields.").showAndWait();
                 return;
             }
-    // ==========================================
-    // NAME: NUR ATIQAH (2518126) 
-    // ==========================================
-            boolean isAdminAuthenticated = false;
-            boolean isCustomerAuthenticated = false;
-            
-            if (email.toLowerCase().contains("@admin.com")) {
-                File adminFile = new File("admin_database.txt");
-                if (adminFile.exists()) {
-                    try (Scanner fileScanner = new Scanner(adminFile)) {
-                        while (fileScanner.hasNextLine()) {
-                            String line = fileScanner.nextLine();
-                            if (line.trim().isEmpty()) continue;
-                            
-                            String[] data = line.split("\\|");
-                            if (data.length >= 5) {
-                                if (data[2].equalsIgnoreCase(email) && data[3].equals(password)) {
-                                    loggedInAdmin = new Admin(data[0], data[1], data[2], data[3], data[4]);
-                                    isAdminAuthenticated = true;
-                                    break;
-                                }
-                            }
-                        }
-                    } catch (FileNotFoundException ex) {
-                        System.out.println("Admin database file not found.");
-                    }
-                }
-            }
 
-            if (!isAdminAuthenticated) {
+            if (isAdminModeChoice) {
+                // RESTRICTION CHECK: Email validation constraint pattern checker rule
+                if (!email.toLowerCase().endsWith("@admin.com")) {
+                    new Alert(Alert.AlertType.ERROR, "Access Denied! Admin emails must end with '@admin.com'.").showAndWait();
+                    return;
+                }
+
+                // If template pattern satisfies format check, run value matcher check
+                if (password.equals("admin123")) {
+                    String selectedRole = adminRoleDropdown.getValue();
+                    String generatedUsername = email.split("@")[0]; // Grabs the user part before email domain
+                    loggedInAdmin = new Admin("A-GLOBAL", generatedUsername, email, password, selectedRole);
+                    
+                    VBox adminRootContainer = new VBox(15);
+                    stage.setScene(new Scene(adminRootContainer, 950, 620));
+                    stage.setTitle("NoorBook Store - Controlled System Admin Workspace");
+                    showAdminDashboard(stage, adminRootContainer);
+                } else {
+                    new Alert(Alert.AlertType.ERROR, "Invalid matching security password password.").showAndWait();
+                }
+            } else {
+                if (!email.toLowerCase().contains("@gmail.com")) {
+                    new Alert(Alert.AlertType.ERROR, "Invalid email pattern! Must consist of '@gmail.com'.").showAndWait();
+                    return;
+                }
+
+                boolean customerFound = false;
                 File userFile = new File("customer_database.txt");
                 if (userFile.exists()) {
                     try (Scanner fileScanner = new Scanner(userFile)) {
                         while (fileScanner.hasNextLine()) {
                             String line = fileScanner.nextLine();
                             if (line.trim().isEmpty()) continue;
-                            
                             String[] data = line.split("\\|");
                             if (data.length >= 5) {
                                 if (data[2].equalsIgnoreCase(email) && data[3].equals(password)) {
                                     loggedInCustomer = new Customer(data[0], data[1], data[2], data[3], data[4]);
-                                    isCustomerAuthenticated = true;
+                                    customerFound = true;
                                     break; 
                                 }
                             }
                         }
                     } catch (FileNotFoundException ex) {
-                        System.out.println("Customer database file not found.");
+                        System.out.println("Customer file loader error.");
                     }
                 }
-            }
-            
-            if (isAdminAuthenticated) {
-                VBox adminRootContainer = new VBox(15);
-                stage.setScene(new Scene(adminRootContainer, 640, 480));
-                stage.setTitle("NoorBook Store - Active Admin Session");
-                showAdminDashboard(stage, adminRootContainer);
-            } else if (isCustomerAuthenticated) {
-                proceedToMainStorefront(stage); 
-            } else {
-                Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Invalid email or password credential match.");
-                errorAlert.showAndWait();
+                
+                if (customerFound) {
+                    proceedToMainStorefront(stage);
+                } else {
+                    new Alert(Alert.AlertType.ERROR, "No matching account profile found.").showAndWait();
+                }
             }
         });
-    // ==========================================
-    // NAME: AMIRAH ARISSA (2517166) 
-    // ==========================================
-    
-        //New member registration
+        
         registerSubmitBtn.setOnAction(e -> {
             String name = regNameField.getText().trim();
             String email = regEmailField.getText().trim();
             String password = regPasswordField.getText();
+            String chosenTier = membershipTierDropdown.getValue();
 
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                Alert warnAlert = new Alert(Alert.AlertType.WARNING, "Please complete all registration entry fields.");
-                warnAlert.showAndWait();
+                new Alert(Alert.AlertType.WARNING, "All fields must be completed.").showAndWait();
                 return;
             }
 
-            if (email.toLowerCase().contains("@admin.com")) {
-                loggedInAdmin = new Admin("A" + (System.currentTimeMillis() % 1000), name, email, password, "Admin");
-                saveAdminToFile(loggedInAdmin);
-                
-                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                successAlert.setTitle("Registration Successful");
-                successAlert.setHeaderText("Welcome to NoorBook Store System Admin!");
-                successAlert.setContentText("Admin account created successfully for " + name + ".");
-                successAlert.showAndWait();
-            } else {
-               
-                loggedInCustomer = new Customer("U", name, email, password, "Silver");
-                saveCustomerToFile(loggedInCustomer);
-                
-                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                successAlert.setTitle("Registration Successful");
-                successAlert.setHeaderText("Welcome to NoorBook Store Membership!");
-                successAlert.setContentText("Account created successfully for " + name + ".\nYour membership tier: Silver Member.");
-                successAlert.showAndWait();
+            if (!email.toLowerCase().contains("@gmail.com")) {
+                new Alert(Alert.AlertType.ERROR, "Registration rejected! Email format must consist of '@gmail.com'.").showAndWait();
+                return;
             }
 
-            regNameField.clear(); regEmailField.clear(); regPasswordField.clear();
-            loginEmailField.setText(email); 
+            loggedInCustomer = new Customer("U" + (System.currentTimeMillis() % 1000), name, email, password, chosenTier);
+            saveCustomerToFile(loggedInCustomer);
             
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setTitle("Profile Saved");
+            successAlert.setContentText("Account registration complete.");
+            successAlert.showAndWait();
+
+            regNameField.clear(); regEmailField.clear(); regPasswordField.clear();
+            membershipTierDropdown.setValue("None");
+            loginEmailField.setText(email); 
             registerBox.setVisible(false);
             loginBox.setVisible(true);
         });
 
-        stage.setScene(new Scene(rootStack, 420, 420));
+        stage.setScene(new Scene(rootStack, 420, 520));
         stage.show();
     }
     
-    // ==========================================
-    // ADMIN DASHBOARD: NUR ATIQAH (2518126) 
-    // ==========================================
     private void showAdminDashboard(Stage stage, VBox rootContainer) {
         rootContainer.getChildren().clear();
+        rootContainer.setPadding(new Insets(20));
+        rootContainer.setStyle("-fx-background-color: #ffffff;");
 
-        VBox adminBox = new VBox(15);
-        adminBox.setPadding(new Insets(25));
-        adminBox.setStyle("-fx-background-color: #ffffff;");
+        System.out.println(" Admin Name: " + loggedInAdmin.getName());
+        System.out.println(" Role: " + loggedInAdmin.getRole());
+        
+        boolean isSuperAdmin = loggedInAdmin.getRole().equalsIgnoreCase("Super Admin");
 
-        Label welcomeLabel = new Label("Admin Command Center | Welcome, " + loggedInAdmin.getName() + " (" + loggedInAdmin.getRole() + ")");
-        welcomeLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #0d47a1;"); 
-
-        Label subLabel = new Label("Global Customer Booking & Purchase Logs Database History:");
-        subLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #333333;");
-
-        ListView<String> historyListView = new ListView<>();
-        ObservableList<String> historyData = FXCollections.observableArrayList();
-
-        try (Scanner fileScanner = new Scanner(new File("order_history_database.txt"))) {
-            while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine();
-                if (line.trim().isEmpty()) continue;
-                
-                String[] splitData = line.split("\\|");
-                if (splitData.length >= 4) {
-                    String record = "📅 " + splitData[0] + " | 👤 " + splitData[1] + "\n📦 Books: " + splitData[2].replace("\n", " ") + " | 💰 " + splitData[3];
-                    historyData.add(record);
-                } else {
-                    historyData.add(line);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            historyData.add("No purchase or booking history logs found inside order_history_database.txt yet.");
+        if (isSuperAdmin) {
+            System.out.println(" Access: Add / Edit / Delete Products");
+            System.out.println("       : View All Customer Orders");
+        } else {
+            System.out.println(" Access: View Product Inventory & History Logs Check");
         }
 
-        historyListView.setItems(historyData);
-        historyListView.setPrefHeight(280);
+        VBox identityBadgeBox = new VBox(4);
+        identityBadgeBox.setPadding(new Insets(10));
+        identityBadgeBox.setStyle("-fx-background-color: #f1f5f9; -fx-border-color: #cbd5e1; -fx-border-radius: 4;");
+        Label adminNameLabel = new Label("👑 Admin User: " + loggedInAdmin.getName());
+        adminNameLabel.setStyle("-fx-font-weight: bold;");
+        Label adminRoleLabel = new Label("💼 Role: " + loggedInAdmin.getRole());
+        adminRoleLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold;");
+        Label adminAccessLabel = new Label(isSuperAdmin ? "Access: Add / Edit / Delete Products | View All Customer Orders" : "Access: View Product Inventory & History Logs Check");
+        adminAccessLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #b45309;");
+        identityBadgeBox.getChildren().addAll(adminNameLabel, adminRoleLabel, adminAccessLabel);
+        rootContainer.getChildren().add(identityBadgeBox);
 
-        Button refreshBtn = new Button("Refresh Logs");
-        refreshBtn.setStyle("-fx-background-color: #1976d2; -fx-text-fill: white;");
-        refreshBtn.setOnAction(e -> showAdminDashboard(stage, rootContainer)); 
+        HBox splitBodyLayout = new HBox(15);
+        VBox.setVgrow(splitBodyLayout, Priority.ALWAYS);
 
-        Button logoutBtn = new Button("Logout Admin Session");
-        logoutBtn.setStyle("-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold;");
+        VBox logViewFrame = new VBox(8);
+        HBox.setHgrow(logViewFrame, Priority.ALWAYS);
+        logViewFrame.getChildren().add(new Label("📜 System Global Transaction Ledger Logs:"));
+        ListView<String> historyListView = new ListView<>();
+        ObservableList<String> historyItems = FXCollections.observableArrayList();
         
-        // Logik keluar (Logout) Admin ke skrin utama semula
-        logoutBtn.setOnAction(e -> {
-            System.out.println("Logging out admin safely.");
+        try (Scanner fs = new Scanner(new File("order_history_database.txt"))) {
+            while (fs.hasNextLine()) {
+                String l = fs.nextLine();
+                if (l.trim().isEmpty()) continue;
+                String[] parts = l.split("\\|");
+                if (parts.length >= 4) {
+                    historyItems.add("📅 " + parts[0] + "\n👤 Buyer: " + parts[1] + "\n📦 Books: " + parts[2] + "\n💰 Amount: " + parts[3]);
+                }
+            }
+        } catch (FileNotFoundException e) { historyItems.add("No orders logged yet."); }
+        historyListView.setItems(historyItems);
+        logViewFrame.getChildren().add(historyListView);
+        splitBodyLayout.getChildren().add(logViewFrame);
+
+        if (isSuperAdmin) {
+            TabPane superAdminTabPane = new TabPane();
+            superAdminTabPane.setPrefWidth(480);
+            
+            Tab customerTab = new Tab("Customer Memberships");
+            customerTab.setClosable(false);
+            VBox custBox = new VBox(8);
+            custBox.setPadding(new Insets(10));
+            
+            ListView<String> customerListView = new ListView<>();
+            ObservableList<String> customerData = FXCollections.observableArrayList();
+            List<String> rawCustomerLines = new ArrayList<>();
+            
+            Runnable refreshCustomersWorker = () -> {
+                customerData.clear(); rawCustomerLines.clear();
+                File f = new File("customer_database.txt");
+                if (f.exists()) {
+                    try (Scanner sc = new Scanner(f)) {
+                        while (sc.hasNextLine()) {
+                            String s = sc.nextLine();
+                            if (s.trim().isEmpty()) continue;
+                            rawCustomerLines.add(s);
+                            String[] p = s.split("\\|");
+                            customerData.add("ID: " + p[0] + " | Name: " + p[1] + "\n📧 Email: " + p[2] + " | Tier: " + p[4]);
+                        }
+                    } catch (Exception ex) { System.out.println("Err mapping users."); }
+                }
+                customerListView.setItems(customerData);
+            };
+            refreshCustomersWorker.run();
+            
+            ComboBox<String> tierBox = new ComboBox<>();
+            tierBox.getItems().addAll("None", "Bronze", "Silver", "Gold");
+            tierBox.setValue("None");
+            tierBox.setMaxWidth(Double.MAX_VALUE);
+            
+            Button updateTierBtn = new Button("Update Customer's Membership Status");
+            updateTierBtn.setStyle("-fx-background-color: #d97706; -fx-text-fill: white; -fx-font-weight: bold;");
+            updateTierBtn.setMaxWidth(Double.MAX_VALUE);
+            
+            updateTierBtn.setOnAction(e -> {
+                int idx = customerListView.getSelectionModel().getSelectedIndex();
+                if (idx >= 0) {
+                    String[] profile = rawCustomerLines.get(idx).split("\\|");
+                    profile[4] = tierBox.getValue();
+                    rawCustomerLines.set(idx, String.join("|", profile));
+                    try (PrintWriter pw = new PrintWriter(new File("customer_database.txt"))) {
+                        for (String line : rawCustomerLines) pw.println(line);
+                    } catch (Exception ex) { System.out.println("Err saving membership."); }
+                    new Alert(Alert.AlertType.INFORMATION, "Membership tier altered!").showAndWait();
+                    refreshCustomersWorker.run();
+                }
+            });
+            custBox.getChildren().addAll(new Label("Select User Profile Row:"), customerListView, new Label("Set Level Target:"), tierBox, updateTierBtn);
+            customerTab.setContent(custBox);
+
+            Tab inventoryCRUDTab = new Tab("Catalog CRUD Tool");
+            inventoryCRUDTab.setClosable(false);
+            VBox crudBox = new VBox(6);
+            crudBox.setPadding(new Insets(10));
+            
+            ListView<Product> prodListView = new ListView<>(availableProducts);
+            prodListView.setPrefHeight(180);
+            
+            TextField idInpt = new TextField(); idInpt.setPromptText("Product Code ID (e.g. B09)");
+            TextField titleInpt = new TextField(); titleInpt.setPromptText("Book Title Description");
+            TextField authInpt = new TextField(); authInpt.setPromptText("Author Writer name");
+            TextField priceInpt = new TextField(); priceInpt.setPromptText("Price Value (RM)");
+            TextField stockInpt = new TextField(); stockInpt.setPromptText("Stock Units Qty");
+            TextField catInpt = new TextField(); catInpt.setPromptText("Category (Quran, Hadith, etc)");
+
+            prodListView.getSelectionModel().selectedItemProperty().addListener((obs, oldV, selectedProd) -> {
+                if (selectedProd != null) {
+                    idInpt.setText(selectedProd.getProductID()); idInpt.setEditable(false);
+                    titleInpt.setText(selectedProd.getTitle());
+                    authInpt.setText(selectedProd.getAuthor());
+                    priceInpt.setText(String.valueOf(selectedProd.getPrice()));
+                    stockInpt.setText(String.valueOf(selectedProd.getStock()));
+                    catInpt.setText(selectedProd.getCategory());
+                }
+            });
+            
+            HBox crudActionButtonsRow = new HBox(8);
+            Button addBtn = new Button("Add Product"); addBtn.setStyle("-fx-background-color: #16a34a; -fx-text-fill: white;");
+            Button editBtn = new Button("Edit Product"); editBtn.setStyle("-fx-background-color: #2563eb; -fx-text-fill: white;");
+            Button delBtn = new Button("Delete Product"); delBtn.setStyle("-fx-background-color: #dc2626; -fx-text-fill: white;");
+            crudActionButtonsRow.getChildren().addAll(addBtn, editBtn, delBtn);
+            
+            addBtn.setOnAction(e -> {
+                idInpt.setEditable(true);
+                if (idInpt.getText().isEmpty() || titleInpt.getText().isEmpty()) return;
+                availableProducts.add(new Product(idInpt.getText(), titleInpt.getText(), authInpt.getText(), Double.parseDouble(priceInpt.getText()), Integer.parseInt(stockInpt.getText()), catInpt.getText()));
+                saveInventoryToFile(); prodListView.refresh();
+                new Alert(Alert.AlertType.INFORMATION, "Product registered successfully!").showAndWait();
+            });
+
+            editBtn.setOnAction(e -> {
+                Product selected = prodListView.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    selected.setTitle(titleInpt.getText()); selected.setAuthor(authInpt.getText());
+                    selected.setPrice(Double.parseDouble(priceInpt.getText())); selected.setStock(Integer.parseInt(stockInpt.getText()));
+                    selected.setCategory(catInpt.getText());
+                    saveInventoryToFile(); prodListView.refresh();
+                    new Alert(Alert.AlertType.INFORMATION, "Product parameters updated!").showAndWait();
+                }
+            });
+
+            delBtn.setOnAction(e -> {
+                Product selected = prodListView.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    availableProducts.remove(selected); saveInventoryToFile();
+                    new Alert(Alert.AlertType.INFORMATION, "Item removed from inventory records.").showAndWait();
+                }
+            });
+
+            crudBox.getChildren().addAll(prodListView, idInpt, titleInpt, authInpt, priceInpt, stockInpt, catInpt, crudActionButtonsRow);
+            inventoryCRUDTab.setContent(crudBox);
+            
+            superAdminTabPane.getTabs().addAll(customerTab, inventoryCRUDTab);
+            splitBodyLayout.getChildren().add(superAdminTabPane);
+            
+        } else {
+            VBox managerFrame = new VBox(8);
+            managerFrame.setPrefWidth(440);
+            managerFrame.getChildren().add(new Label("📦 Product Inventory Tracker Status Map (Read-Only View):"));
+            
+            ListView<String> readOnlyInvView = new ListView<>();
+            ObservableList<String> invItems = FXCollections.observableArrayList();
+            for (Product p : availableProducts) {
+                invItems.add("Code: " + p.getProductID() + " | Title: " + p.getTitle() + "\n🏷️ Price: RM" + p.getPrice() + " | Units Remainder: " + p.getStock() + " [" + p.getCategory() + "]");
+            }
+            readOnlyInvView.setItems(invItems);
+            managerFrame.getChildren().add(readOnlyInvView);
+            splitBodyLayout.getChildren().add(managerFrame);
+        }
+
+        rootContainer.getChildren().add(splitBodyLayout);
+
+        Button logoutSessionBtn = new Button("Save & Log Out Admin Gateway Context");
+        logoutSessionBtn.setStyle("-fx-background-color: #991b1b; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-height: 38px;");
+        logoutSessionBtn.setMaxWidth(Double.MAX_VALUE);
+        logoutSessionBtn.setOnAction(e -> {
             loggedInAdmin = null;
-            showLoginAndRegisterStage(stage); 
+            showRoleSelectionInterface(stage);
         });
-
-        HBox controlBox = new HBox(12, refreshBtn, logoutBtn);
-        adminBox.getChildren().addAll(welcomeLabel, subLabel, historyListView, controlBox);
-        
-        rootContainer.getChildren().add(adminBox);
+        rootContainer.getChildren().add(logoutSessionBtn);
     }
 
-    // =========================================================================
-    // STOREFRONT LAYOUT - AMIRAH ARISSA (2517166)
-    // =========================================================================
     private void proceedToMainStorefront(Stage primaryStage) {
-        VBox rootContainer = new VBox(15);
+        VBox rootContainer = new VBox(14);
         rootContainer.setPadding(new Insets(15));
         rootContainer.setStyle("-fx-background-color: #f7f9fa;");
 
         Label headerTitle = new Label("NoorBook Store - Islamic Knowledge Hub");
         headerTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1b5e20;");
         
-        Label customerGreeting = new Label("Logged in as: " + loggedInCustomer.getName() + " (" + loggedInCustomer.getMembershipTier() + " Member)");
-        customerGreeting.setStyle("-fx-font-size: 12px; -fx-text-fill: #555555;");
+        Label customerGreeting = new Label("Active User Session: " + loggedInCustomer.getName() + " (" + loggedInCustomer.getMembershipTier() + " Member)");
+        customerGreeting.setStyle("-fx-font-size: 12px; -fx-text-fill: #4b5563;");
         rootContainer.getChildren().addAll(headerTitle, customerGreeting);
 
-    // =========================================================================
-    // CONTROL PANEL - SYAHIRAH (2516300)
-    // =========================================================================
         HBox controlPanelRow = new HBox(12);
         controlPanelRow.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField(); 
         searchField.setPromptText("Search book or author...");
-        searchField.setPrefWidth(220);
+        searchField.setPrefWidth(150);
 
         categoryFilter = new ComboBox<>(); 
         categoryFilter.getItems().addAll(
@@ -364,43 +522,56 @@ public class App extends Application {
         );
         categoryFilter.setValue(categoryFilter.getItems().get(0)); 
 
-        controlPanelRow.getChildren().addAll(new Label("Filter Title:"), searchField, new Label("Category:"), categoryFilter);
+        Button joinMembershipBtn = new Button("🌟 Join Membership Plan Now");
+        joinMembershipBtn.setStyle("-fx-background-color: #ff9100; -fx-text-fill: black; -fx-font-weight: bold;");
+        
+        if (!loggedInCustomer.getMembershipTier().equalsIgnoreCase("None")) {
+            joinMembershipBtn.setVisible(false);
+        }
+
+        joinMembershipBtn.setOnAction(e -> {
+            ChoiceDialog<String> dialog = new ChoiceDialog<>("Bronze", "Bronze", "Silver", "Gold");
+            dialog.setTitle("Membership Enrollment Portal");
+            dialog.setContentText("Choose a premium membership tier:");
+            
+            dialog.showAndWait().ifPresent(chosenTier -> {
+                loggedInCustomer.setMembershipTier(chosenTier);
+                updateCustomerTierInDatabaseFile(loggedInCustomer.getEmail(), chosenTier);
+                
+                new Alert(Alert.AlertType.INFORMATION, "Congratulations! You are now a premium " + chosenTier + " Member!").showAndWait();
+                customerGreeting.setText("Active User Session: " + loggedInCustomer.getName() + " (" + loggedInCustomer.getMembershipTier() + " Member)");
+                joinMembershipBtn.setVisible(false); 
+            });
+        });
+
+        controlPanelRow.getChildren().addAll(new Label("Filter:"), searchField, categoryFilter, joinMembershipBtn);
         rootContainer.getChildren().add(controlPanelRow);
 
         HBox bodySplitViewLayout = new HBox(20);
-        HBox.setHgrow(bodySplitViewLayout, Priority.ALWAYS);
+        VBox.setVgrow(bodySplitViewLayout, Priority.ALWAYS);
 
-        // =========================================================================
-        // GRIDPANE MATRIX SHELF - AMIRAH ARISSA (2517166)
-        // =========================================================================
         VBox galleryWrapperFrame = new VBox(6);
+        HBox.setHgrow(galleryWrapperFrame, Priority.ALWAYS);
         Label shelfLabel = new Label("Available Books on Shelves:");
-        shelfLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #333333;");
-
         bookGalleryGrid = new GridPane(); 
-        bookGalleryGrid.setHgap(10);
-        bookGalleryGrid.setVgap(10);
+        bookGalleryGrid.setHgap(10); bookGalleryGrid.setVgap(10);
         bookGalleryGrid.setPadding(new Insets(10));
-        bookGalleryGrid.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e2e8f0; -fx-border-radius: 6;");
-
+        bookGalleryGrid.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e2e8f0;");
+        
         refreshDynamicStorefrontCatalog("", categoryFilter.getValue());
         galleryWrapperFrame.getChildren().addAll(shelfLabel, bookGalleryGrid);
+        bodySplitViewLayout.getChildren().add(galleryWrapperFrame);
 
-        // =========================================================================
-        // SHOPPING BASKET - SYAHIRAH (2516300)
-        // =========================================================================
-        VBox basketControlWrapper = new VBox(6);
-        basketControlWrapper.setPrefWidth(240);
+        VBox rightSideControlPanelBox = new VBox(10);
+        rightSideControlPanelBox.setPrefWidth(280);
+        
         Label cartLabel = new Label("Shopping Basket:");
-        cartLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #333333;");
-
         cartListView = new ListView<>(cartItems);
-        cartListView.setPrefHeight(220);
+        cartListView.setPrefHeight(140);
 
         HBox actionAdjustmentButtonsRow = new HBox(8);
         addToCartButton = new Button("Add Item"); 
         addToCartButton.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white;");
-
         removeFromCartButton = new Button("Remove"); 
         removeFromCartButton.setStyle("-fx-background-color: #c62828; -fx-text-fill: white;");
         actionAdjustmentButtonsRow.getChildren().addAll(addToCartButton, removeFromCartButton);
@@ -408,28 +579,50 @@ public class App extends Application {
         checkoutButton = new Button("Confirm Checkout & Log Order"); 
         checkoutButton.setStyle("-fx-background-color: #1565c0; -fx-text-fill: white; -fx-font-weight: bold;");
         checkoutButton.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(checkoutButton, Priority.ALWAYS);
 
-        basketControlWrapper.getChildren().addAll(cartLabel, cartListView, actionAdjustmentButtonsRow, checkoutButton);
-        bodySplitViewLayout.getChildren().addAll(galleryWrapperFrame, basketControlWrapper);
+        Label personalHistoryLabel = new Label("📜 Your Past Order History Logs:");
+        personalHistoryLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #1e3a8a;");
+        ListView<String> customerPersonalHistoryListView = new ListView<>();
+        customerPersonalHistoryListView.setPrefHeight(150);
+        ObservableList<String> personalHistoryItemsList = FXCollections.observableArrayList();
+        
+        Runnable parsePersonalHistoryLogsWorker = () -> {
+            personalHistoryItemsList.clear();
+            File histFile = new File("order_history_database.txt");
+            if (histFile.exists()) {
+                try (Scanner historyFileScanner = new Scanner(histFile)) {
+                    while (historyFileScanner.hasNextLine()) {
+                        String currentLine = historyFileScanner.nextLine();
+                        if (currentLine.trim().isEmpty()) continue;
+                        String[] partitionTokens = currentLine.split("\\|");
+                        if (partitionTokens.length >= 4) {
+                            String emailContextDescriptor = partitionTokens[1];
+                            if (emailContextDescriptor.contains(loggedInCustomer.getEmail())) {
+                                personalHistoryItemsList.add("📅 " + partitionTokens[0] + "\n📦 Content: " + partitionTokens[2] + "\n💰 Cost: " + partitionTokens[3]);
+                            }
+                        }
+                    }
+                } catch (FileNotFoundException ex) { System.out.println("History mapping context exception."); }
+            }
+            if (personalHistoryItemsList.isEmpty()) {
+                personalHistoryItemsList.add("No checkouts logged under your profile yet.");
+            }
+            customerPersonalHistoryListView.setItems(personalHistoryItemsList);
+        };
+        parsePersonalHistoryLogsWorker.run();
+
+        rightSideControlPanelBox.getChildren().addAll(cartLabel, cartListView, actionAdjustmentButtonsRow, checkoutButton, personalHistoryLabel, customerPersonalHistoryListView);
+        bodySplitViewLayout.getChildren().add(rightSideControlPanelBox);
         rootContainer.getChildren().add(bodySplitViewLayout);
 
-        // --- EVENT HANDLERS ---
-        searchField.textProperty().addListener((observable, oldVal, newVal) -> {
-            refreshDynamicStorefrontCatalog(newVal, categoryFilter.getValue());
-        });
-
-        categoryFilter.setOnAction(e -> {
-            refreshDynamicStorefrontCatalog(searchField.getText(), categoryFilter.getValue());
-        });
+        searchField.textProperty().addListener((obs, oldV, newV) -> refreshDynamicStorefrontCatalog(newV, categoryFilter.getValue()));
+        categoryFilter.setOnAction(e -> refreshDynamicStorefrontCatalog(searchField.getText(), categoryFilter.getValue()));
 
         addToCartButton.setOnAction(e -> {
             if (selectedProductFromGrid != null) {
                 int quantityInCart = 0;
                 for (Product item : cartItems) {
-                    if (item.getProductID().equals(selectedProductFromGrid.getProductID())) {
-                        quantityInCart++;
-                    }
+                    if (item.getProductID().equals(selectedProductFromGrid.getProductID())) quantityInCart++;
                 }
                 try {
                     if (quantityInCart >= selectedProductFromGrid.getStock()) {
@@ -437,66 +630,63 @@ public class App extends Application {
                     }
                     cartItems.add(selectedProductFromGrid);
                 } catch (BookOutOfStockException ex) {
-                    Alert outOfStockAlert = new Alert(Alert.AlertType.ERROR, ex.getMessage());
-                    outOfStockAlert.showAndWait();
+                    new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
                 }
             } else {
-                Alert emptySelectAlert = new Alert(Alert.AlertType.WARNING, "Please pick an item from the shelf first.");
-                emptySelectAlert.showAndWait();
+                new Alert(Alert.AlertType.WARNING, "Please pick an item from the shelf first.").showAndWait();
             }
         });
 
         removeFromCartButton.setOnAction(e -> {
-            Product highlyTargetedItem = cartListView.getSelectionModel().getSelectedItem();
-            if (highlyTargetedItem != null) {
-                cartItems.remove(highlyTargetedItem);
-            }
+            Product targeted = cartListView.getSelectionModel().getSelectedItem();
+            if (targeted != null) cartItems.remove(targeted);
         });
         
-       checkoutButton.setOnAction(e -> {
-    if (cartItems.isEmpty()) {
-        new Alert(Alert.AlertType.INFORMATION, "Your active basket remains empty.").showAndWait();
-    } else {
-        StringBuilder invoiceBreakdownBuffer = new StringBuilder("Items Checked Out:\n");
-        double structuralAggregateCost = 0.0;
+        checkoutButton.setOnAction(e -> {
+            if (cartItems.isEmpty()) {
+                new Alert(Alert.AlertType.INFORMATION, "Your active basket remains empty.").showAndWait();
+            } else {
+                StringBuilder invoiceBreakdownBuffer = new StringBuilder("Items Checked Out:\n");
+                double structuralAggregateCost = 0.0;
+                String customerTier = loggedInCustomer.getMembershipTier();
 
-        // Get the logged-in customer's tier (e.g., "Silver", "Gold")
-        String customerTier = loggedInCustomer.getMembershipTier();
+                for (Product item : cartItems) {
+                    double originalPrice = item.getPrice();
+                    double discountedPrice = Membership.applyMembershipDiscount(customerTier, originalPrice);
+                    
+                    invoiceBreakdownBuffer.append("- ").append(item.getTitle())
+                        .append(" (RM ").append(String.format("%.2f", discountedPrice)).append(")\n");
+                    structuralAggregateCost += discountedPrice;
+                    item.setStock(item.getStock() - 1); 
+                }
 
-        for (Product item : cartItems) {
-            double originalPrice = item.getPrice();
-            
-            // =========================================================================
-            // INTEGRATION WORK: Calling Syahirah's Membership Class
-            // =========================================================================
-            double discountedPrice = Membership.applyMembershipDiscount(customerTier, originalPrice);
-            
-            invoiceBreakdownBuffer.append("- ")
-                .append(item.getTitle())
-                .append(" (Original: RM").append(String.format("%.2f", originalPrice))
-                .append(" -> Member Price: RM").append(String.format("%.2f", discountedPrice))
-                .append(")\n");
+                saveOrderToHistoryFile(loggedInCustomer.getName(), loggedInCustomer.getEmail(), invoiceBreakdownBuffer.toString(), structuralAggregateCost);
+                loggedInCustomer.addOrder("Total Cost: RM " + String.format("%.2f", structuralAggregateCost) + " | Units: " + cartItems.size());
+
+                Alert orderSuccessAlert = new Alert(Alert.AlertType.INFORMATION);
+                orderSuccessAlert.setTitle("Transaction Approved");
+                orderSuccessAlert.setContentText(invoiceBreakdownBuffer.toString() + "\nTotal Price: RM " + String.format("%.2f", structuralAggregateCost));
+                orderSuccessAlert.showAndWait();
+
+                cartItems.clear();
+                saveInventoryToFile(); 
                 
-            structuralAggregateCost += discountedPrice;
-            item.setStock(item.getStock() - 1); 
-        }
+                parsePersonalHistoryLogsWorker.run();
+                refreshDynamicStorefrontCatalog(searchField.getText(), categoryFilter.getValue());
+            }
+        });
 
-        // Save order and log data using the updated structuralAggregateCost
-        saveOrderToHistoryFile(loggedInCustomer.getName(), loggedInCustomer.getEmail(), invoiceBreakdownBuffer.toString(), structuralAggregateCost);
-        loggedInCustomer.addOrder("Total Cost: RM" + String.format("%.2f", structuralAggregateCost) + " | Units: " + cartItems.size());
+        Button customerLogoutSessionBtn = new Button("Save & Log Out Customer Session");
+        customerLogoutSessionBtn.setStyle("-fx-background-color: #991b1b; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-height: 38px;");
+        customerLogoutSessionBtn.setMaxWidth(Double.MAX_VALUE);
+        customerLogoutSessionBtn.setOnAction(e -> {
+            loggedInCustomer = null;
+            cartItems.clear();
+            showRoleSelectionInterface(primaryStage);
+        });
+        rootContainer.getChildren().add(customerLogoutSessionBtn);
 
-        Alert orderSuccessAlert = new Alert(Alert.AlertType.INFORMATION);
-        orderSuccessAlert.setTitle("Transaction Approved");
-        orderSuccessAlert.setContentText(invoiceBreakdownBuffer.toString() + "\nTotal Price (After Discounts): RM" + String.format("%.2f", structuralAggregateCost));
-        orderSuccessAlert.showAndWait();
-
-        cartItems.clear();
-        saveInventoryToFile(); 
-        refreshDynamicStorefrontCatalog(searchField.getText(), categoryFilter.getValue());
-    }
-});
-
-        primaryStage.setScene(new Scene(rootContainer, 640, 480));
+        primaryStage.setScene(new Scene(rootContainer, 850, 580));
         primaryStage.setTitle("NoorBook Store - Active Storefront Session");
         primaryStage.show();
     }
@@ -515,7 +705,7 @@ public class App extends Application {
 
             if (standardNameMatch && activeCategoryMatch) {
                 String gridTileTextDescriptor = targetProduct.getTitle() + "\nBy: " + targetProduct.getAuthor() + 
-                                                "\nRM" + targetProduct.getPrice() + " (" + (targetProduct.isAvailable() ? "In Stock" : "OUT") + ")";
+                                                "\nRM " + String.format("%.2f", targetProduct.getPrice()) + " (" + (targetProduct.getStock() > 0 ? "Stock: " + targetProduct.getStock() : "OUT") + ")";
 
                 Button itemCardTileButton = new Button(gridTileTextDescriptor);
                 itemCardTileButton.setPrefSize(160, 85);
@@ -546,19 +736,39 @@ public class App extends Application {
         }
     }
 
+    private void updateCustomerTierInDatabaseFile(String email, String dynamicTierPlan) {
+        List<String> tempProfiles = new ArrayList<>();
+        File file = new File("customer_database.txt");
+        if (file.exists()) {
+            try (Scanner scanner = new Scanner(file)) {
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    if (line.trim().isEmpty()) continue;
+                    String[] tokens = line.split("\\|");
+                    if (tokens.length >= 5 && tokens[2].equalsIgnoreCase(email)) {
+                        tokens[4] = dynamicTierPlan;
+                        line = String.join("|", tokens);
+                    }
+                    tempProfiles.add(line);
+                }
+            } catch (Exception ex) { System.out.println("Error processing file records stream."); }
+            
+            try (PrintWriter writer = new PrintWriter(file)) {
+                for (String prof : tempProfiles) writer.println(prof);
+            } catch (Exception ex) { System.out.println("Error saving updates."); }
+        }
+    }
+
     private void saveInventoryToFile() {
         try (PrintWriter writer = new PrintWriter("inventory_database.txt")) { 
             for (Product targetProduct : availableProducts) {
                 writer.println(targetProduct.getProductID() + "|" + targetProduct.getTitle() + "|" + targetProduct.getAuthor() + "|" + targetProduct.getPrice() + "|" + targetProduct.getStock() + "|" + targetProduct.getCategory());
             }
-        } catch (IOException e) {
-            System.out.println("Error saving inventory file.");
-        }
+        } catch (IOException e) { System.out.println("Error saving inventory file."); }
     }
 
     private void loadInventory() {
         availableProducts.clear();
-        loggedInCustomer = new Customer("U2026", "Ahmad Fauzi", "fauzi@iium.edu.my", "noorPass99", "Gold");
         try (Scanner fileScanner = new Scanner(new File("inventory_database.txt"))) {
             while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
@@ -566,22 +776,17 @@ public class App extends Application {
                 String[] data = line.split("\\|");
                 availableProducts.add(new Product(data[0], data[1], data[2], Double.parseDouble(data[3]), Integer.parseInt(data[4]), data[5]));
             }
-        } catch (FileNotFoundException e) {
-            System.out.println("inventory_database.txt not found.");
-        }
+        } catch (FileNotFoundException e) { System.out.println("inventory_database.txt missing."); }
     }
 
     private void saveOrderToHistoryFile(String buyerName, String buyerEmail, String itemsSummary, double totalCost) {
-        String fileName = "order_history_database.txt";
         LocalDateTime currentDateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedTimestamp = currentDateTime.format(formatter);
 
-        try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(fileName, true))) {
+        try (PrintWriter writer = new PrintWriter(new java.io.FileWriter("order_history_database.txt", true))) {
             writer.println(formattedTimestamp + "|" + buyerName + " (" + buyerEmail + ")|" + itemsSummary.trim() + "|" + "RM " + String.format("%.2f", totalCost));
-        } catch (IOException e) {
-            System.out.println("Error appending transaction to file.");
-        }
+        } catch (IOException e) { System.out.println("Error appending history record."); }
     }
     
     private void initializeMockDatabase() {
@@ -597,32 +802,19 @@ public class App extends Application {
             availableProducts.add(new Product("B06", "The Secret", "Rhonda Byrne", 48.00, 7, "Motivational Books"));
             availableProducts.add(new Product("B07", "Athkar Dua Book", "Jannat Al Quran", 30.00, 12, "Children's Islamic Learning"));
             availableProducts.add(new Product("B08", "Islam For Younger Children", "Ghulam Sarwar", 28.00, 15, "Children's Islamic Learning"));
-            
             saveInventoryToFile(); 
         }
         
         File userFile = new File("customer_database.txt");
         if (!userFile.exists()) {
-            Customer mockUser = new Customer("U2026", "Ahmad Fauzi", "fauzi@iium.edu.my", "noorPass99", "Gold");
+            Customer mockUser = new Customer("U2026", "Ahmad Fauzi", "fauzi@gmail.com", "fauzi123", "Gold");
             saveCustomerToFile(mockUser);
         }
     }
 
     private void saveCustomerToFile(Customer customer) {
-        String fileName = "customer_database.txt";
-        try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(fileName, true))) {
+        try (PrintWriter writer = new PrintWriter(new java.io.FileWriter("customer_database.txt", true))) {
             writer.println(customer.getUserID() + "|" + customer.getName() + "|" + customer.getEmail() + "|" + customer.getPassword() + "|" + customer.getMembershipTier());
-        } catch (IOException e) {
-            System.out.println("Error saving customer data to file.");
-        }
-    }
-
-    private void saveAdminToFile(Admin admin) {
-        String fileName = "admin_database.txt";
-        try (PrintWriter writer = new PrintWriter(new java.io.FileWriter(fileName, true))) {
-            writer.println(admin.getUserID() + "|" + admin.getName() + "|" + admin.getEmail() + "|" + admin.getPassword() + "|" + admin.getRole());
-        } catch (IOException e) {
-            System.out.println("Error saving admin data to file.");
-        }
+        } catch (IOException e) { System.out.println("Error saving customer text database."); }
     }
 }
