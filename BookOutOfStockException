@@ -1,5 +1,9 @@
 package noorbookstore;
 
+// ==========================================
+// NAME: SOFIYA (2516342) 
+// ==========================================
+
 /**
  * Custom Exception for handling out-of-stock books
  * Used in the Customer Storefront UI during cart operations.
