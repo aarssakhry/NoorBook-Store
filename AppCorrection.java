@@ -849,7 +849,10 @@ public class App extends Application {
 
                 for (Product item : cartItems) {
                     double originalPrice = item.getPrice();
-                    double discountedPrice = Membership.applyMembershipDiscount(customerTier, originalPrice);
+
+                    //Dynamically uses the interface method strategy pattern
+                    Membership strategy = loggedInCustomer.getMembershipStrategy();
+                    double discountedPrice = strategy.getDiscountedPrice (originalPrice);
                     
                     invoiceBreakdownBuffer.append("- ").append(item.getTitle())
                         .append(" (RM ").append(String.format("%.2f", discountedPrice)).append(")\n");
