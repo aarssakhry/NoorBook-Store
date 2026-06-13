@@ -1,5 +1,9 @@
 package noorbookstore;
 
+// ==========================================
+// NAME: SYAHIRAH (2516300) AI
+// ==========================================
+
 public class BronzeMembership implements Membership {
     @Override
     public double getDiscountedPrice(double originalPrice) {
