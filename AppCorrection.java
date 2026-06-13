@@ -604,7 +604,8 @@ public class App extends Application {
                         return;
                     }
                     try {
-                        // Update all editable fields
+                       // AI 
+                       // Update all editable fields
                        selected.setTitle(titleInpt.getText()); 
                        selected.setAuthor(authInpt.getText());
                        selected.setPrice(Double.parseDouble(priceInpt.getText())); 
@@ -633,7 +634,10 @@ public class App extends Application {
                     new Alert (Alert.AlertType.WARNING, "Please select a product from the list to edit.").showAndWait();
                 }
             });
-            
+
+            // ==========================================
+            // NAME: ZULAIKHA HANANI (2514396) 
+            // ==========================================
             delBtn.setOnAction(e->{
                 Product selected = prodListView.getSelectionModel().getSelectedItem();
                 if (selected!=null) {
