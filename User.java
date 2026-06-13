@@ -5,7 +5,7 @@
 package noorbookstore;
 
 // ==========================================
-// NAME: ZULAIKHA (2514396) 
+// NAME: ZULAIKHA HANANI (2514396) 
 // ==========================================
 
 //ABSTRACTION
@@ -52,8 +52,5 @@ public abstract class User {
     public void setPassword(String password){
         this.password = password;
     }
-    
-    //ABSTRACTION
-    //POLYMORPHISM
     public abstract void showDashboard();
 }
