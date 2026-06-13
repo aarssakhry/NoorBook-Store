@@ -5,7 +5,7 @@
 package noorbookstore;
 
 // ==========================================
-// NAME: ZULAIKHA (2514396) 
+// NAME: ZULAIKHA HANANI (2514396) 
 // ==========================================
 
 //INHERITANCE
