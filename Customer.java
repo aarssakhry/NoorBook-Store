@@ -8,56 +8,31 @@ package noorbookstore;
 // NAME: ZULAIKHA HANANI (2514396) 
 // ==========================================
 
-//INHERITANCE
+import java.util.ArrayList;
+import java.util.List;
+
 public class Customer extends User {
-    
-    //ENCAPSULATION
-    private String[] orderHistory; //empty array to store order records
-    private int orderCount; //to track how many orders have been added
-    private String membershipTier; //e.g. "None", "Bronze", "Silver", "Gold"
-    
-    //Constructor
-    public Customer(String userID, String name, String email, String password, String membershipTier){
+    private String membershipTier;
+    private List<String> orderHistory;
+
+    public Customer(String userID, String name, String email, String password, String membershipTier) {
         super(userID, name, email, password);
         this.membershipTier = membershipTier;
-        this.orderHistory = new String [100];
-        this.orderCount = 0;
+        this.orderHistory = new ArrayList<>();
     }
-    
-    //Getters method
-    public String getMembershipTier(){
-        return membershipTier;
-    }
-    public int getOrderCount(){
-        return orderCount;
-    }
-    public String[] getOrderHistory(){
-        return orderHistory;
-    }
-    
-    //Setter method
-    public void setMembershipTier(String tier){
-        this.membershipTier = tier;
-    }
-    
-    //add order to history
-    public void addOrder(String orderSummary){
-        orderHistory[orderCount] = orderSummary;
-        orderCount++;
-        System.out.println("Order recorded: " + orderSummary);
-    }
-    
-    //POLYMORPHISM
-    //displays a customer-specific dashboard
-    @Override
-    public void showDashboard(){
-        System.out.println("===================================================");
-        System.out.println("         NoorBook Store - Customer Portal"          );
-        System.out.println("===================================================");
-        System.out.println(" Welcome, " + getName() + "!");
-        System.out.println(" Membership Tier: " + getMembershipTier());
-        System.out.println(" Past Orders: " + orderCount);
-        System.out.println("Browse our latest Islamic books & more.");
-        System.out.println("===================================================");
+
+    public String getMembershipTier() { return membershipTier; }
+    public void setMembershipTier(String membershipTier) { this.membershipTier = membershipTier; }
+    public void addOrder(String orderDetails) { orderHistory.add(orderDetails); }
+    public List<String> getOrderHistory() { return orderHistory; }
+
+    // Helper method to resolve the dynamic Interface strategy
+    public Membership getMembershipStrategy() {
+        switch (membershipTier.toLowerCase()) {
+            case "gold": return new GoldMembership();
+            case "silver": return new SilverMembership();
+            case "bronze": return new BronzeMembership();
+            default: return new StandardMembership();
+        }
     }
 }
