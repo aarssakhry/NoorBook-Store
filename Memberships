@@ -4,20 +4,7 @@ package noorbookstore;
 // NAME: SYAHIRAH (2516300)
 // ==========================================
 
-public class Membership {
-    
-    public static double applyMembershipDiscount(String type, double currentPrice) {
-        if (type == null) return currentPrice;
-        
-        switch (type.toUpperCase()) {
-            case "GOLD":
-                return currentPrice * 0.85;  // 15% discount
-            case "SILVER":
-                return currentPrice * 0.90;  // 10% discount
-            case "BRONZE":
-                return currentPrice * 0.95;  // 5% discount
-            default:
-                return currentPrice;        // "NONE" -> no discount
-        }
-    }
+public interface Membership {
+    // Abstract method that implementing tiers must define
+    double getDiscountedPrice(double originalPrice);
 }
