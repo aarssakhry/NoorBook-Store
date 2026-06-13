@@ -1,0 +1,8 @@
+package noorbookstore;
+
+public class BronzeMembership implements Membership {
+    @Override
+    public double getDiscountedPrice(double originalPrice) {
+        return originalPrice * 0.95; // 5% discount
+    }
+}
