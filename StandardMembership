@@ -1,0 +1,9 @@
+package noorbookstore;
+
+
+public class StandardMembership implements Membership {
+    @Override
+    public double getDiscountedPrice(double originalPrice) {
+        return originalPrice; // No discount
+    }
+}
