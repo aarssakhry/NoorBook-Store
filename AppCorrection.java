@@ -102,7 +102,10 @@ public class App extends Application {
         loginBox.setAlignment(Pos.CENTER_LEFT);
         loginBox.setPadding(new Insets(20));
         loginBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8;");
-        
+
+        // ==========================================
+        // NAME: NUR ATIQAH (2518126) 
+        // ==========================================
         Label loginTitle = new Label(isAdminModeChoice ? "Admin Authentication Panel" : "Customer Log-In Hub");
         loginTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + (isAdminModeChoice ? "#0d47a1;" : "#1b5e20;"));
         
@@ -211,6 +214,9 @@ public class App extends Application {
                 return;
             }
 
+           // ==========================================
+           // NAME: NUR ATIQAH (2518126) - use ai
+           // ==========================================
             if (isAdminModeChoice) {
                 // RESTRICTION CHECK: Email validation constraint pattern checker rule
                 if (!email.toLowerCase().endsWith("@admin.com")) {
