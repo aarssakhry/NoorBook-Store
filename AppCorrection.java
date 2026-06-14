@@ -291,7 +291,9 @@ public class App extends Application {
                 new Alert(Alert.AlertType.ERROR, "Registration rejected! Email format must consist of '@gmail.com'.").showAndWait();
                 return;
             }
-            // EXCEPTION HANDLING (AI) - SOFIYA
+            // ==========================================
+            // NAME: NUR SOFIYA BATRISYA (2516342) AI
+            // ==========================================
             // Check if email already exists
             File emailCheckFile = new File("customer_database.txt");
             if (emailCheckFile.exists()) {
@@ -319,7 +321,9 @@ public class App extends Application {
             int nextUserNumber = 001;
             File existingUserFile = new File("customer_database.txt");
             
-// EXCEPTION HANDLING (AI)- SOFIYA            
+            // ==========================================
+            // NAME: NUR SOFIYA BATRISYA (2516342) AI
+            // ==========================================           
             if(existingUserFile.exists()) {
                try (Scanner counterScanner = new Scanner(existingUserFile)) {
                  while(counterScanner.hasNextLine()) {
@@ -496,7 +500,9 @@ public class App extends Application {
             Button delBtn = new Button("Delete Product"); delBtn.setStyle("-fx-background-color: #dc2626; -fx-text-fill: white;");
             crudActionButtonsRow.getChildren().addAll(addBtn, editBtn, delBtn);
             
-            // sofiya
+            // ==========================================
+            // NAME: NUR SOFIYA BATRISYA (2516342) AI
+            // ==========================================
             addBtn.setOnAction(e -> {
 
     idInpt.setEditable(true);
